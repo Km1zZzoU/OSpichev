@@ -1,5 +1,5 @@
 # OSpichev
-##operating system inspired by Sergey Sergeevich Ospichev
+## operating system inspired by Sergey Sergeevich Ospichev
 ```
 ===
  ====
