@@ -1,6 +1,6 @@
 # OSpichev
-operating system inspired by Sergey Sergeevich Ospichev
-
+##operating system inspired by Sergey Sergeevich Ospichev
+```
 ===
  ====
   =======               
@@ -26,3 +26,4 @@ operating system inspired by Sergey Sergeevich Ospichev
           **          =#=           \____/ \____/| .__/|_|\___|_| |_|\___| \_/  
          *#==        =+#=                        | |
          +*+*+++++++++**=                        |_|
+```
