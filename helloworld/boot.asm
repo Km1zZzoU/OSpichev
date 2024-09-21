@@ -2,6 +2,17 @@
 [ORG 0x7C00]
 
 start:
+    xor si, si
+    mov ds, si
+    mov si, 0x7C00
+    mov di, 0x0007
+    mov es, di
+    mov di, 0xfd00
+    mov cx, 0x200
+    rep movsb
+
+    jmp 0x781f:0xfff0
+
     mov si, msg
     call print_string
 
