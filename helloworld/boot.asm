@@ -45,6 +45,6 @@ print_string:
 done:
     ret
 
-msg db 'Hello, World!', 0
+msg db 'Hello, world!', 0
 times 510-($-$$) db 0
 dw 0xAA55
