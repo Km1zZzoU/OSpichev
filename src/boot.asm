@@ -9,8 +9,8 @@ jmp _start
 ; начинающийся с %1:0
 ; в %2:0 длинной %3 байт
 %macro copy 3
-    push di
     push si
+    push di
 
 ; mov out ds:si (ds*16+si)
     mov ax, %1
@@ -26,31 +26,39 @@ jmp _start
     mov cx, %3
     rep movsb
 
-    pop si
     pop di
+    pop si
 %endmacro
 
 %macro read_chs 2; %1 - номер цилиндра, %2 - СЕГМЕНТ, того куда пишем (смещение=0)
+
     mov ax, %1      ; номер цилиндра
     mov ch, al      ; номер цилиндра
+    mov cl, 1       ; номер первого сектора
+
     mov ah, 0x2     ; номер функции
     mov al, 18      ; количесто секторов
-    mov cl, 1       ; номер первого цилиндра
+
     mov bx, %2
     mov es, bx      ; адрес того, куда пишем (0xadres:0)
     xor bx, bx      ; --------------------------------^-
+
     xor dh, dh      ; номер головки
+
     int 0x13        ; номер прерывания
-    mov bx, %2
-    add bx, SIZE_9KB; 9 килобайт
-    mov es, bx      ; куда снова пишем
+    jc allbad
+    ;mov bx, %2
+    mov bx, SIZE_9KB; 9 килобайт
+    ;mov es, bx      ; куда снова пишем
     inc dh          ; меняем головку
     int 0x13        ; номер прерывания
+    jc allbad
+
 %endmacro
 
 %macro load_chs 2; %1 - номер цилиндра, %2 - СЕГМЕНТ, того куда копируем (смещение=0)
     read_chs %1, BUFF
-    copy BUFF, %2, SIZE_18KB
+    ;copy BUFF, %2, SIZE_18KB
 %endmacro
 
 print_string:
@@ -66,9 +74,9 @@ done:               ; Метка окончания вывода строки.
 
 _start:
 
-    mov sp, 0x1000        ; Устанавливаем указатель стека (SP) в значение 1000. Задает начальный адрес стека.
-    mov ss, sp          ; Устанавливаем сегмент стека (SS) равным 1. Это странно, потому что сегмент стека обычно соответствует значению в SP.
-    xor sp, sp          ; Обнуляем указатель стека (SP).
+    mov sp, 0x0500    ;в ss нельзя закинуть сразу 0х1400, тк тогда sp=0
+    mov ss, sp        ;а тк стек растет вниз, мы попадаем в забавную ситуацию
+    mov sp, 0xf000    ;такая комбинация даст стек на 0х14000
 
     cli                 ; Отключаем прерывания для безопасности при настройке сегментных регистров.
 
@@ -81,16 +89,28 @@ _start:
     mov si, msg
     call print_string
 
-    mov si, 0x1       ; итератор по цилиндрам
+    xor si, si      ; итератор по цилиндрам
     mov di, START_SEG ;
-start_load:
-    load_chs si, di
-    ;shr di, 4
-    add di, SIZE_18KB / 16; танцы с бубном так как di - сегмент
-    ;shl di, 4
+.start_load:
     inc si
+
+    mov ax, si
+    add ax, 0xe30 ; для отладки
+    int 0x10
+
+    load_chs si, di
+
+    add di, SIZE_18KB / 16; танцы с бубном так как di - сегмент
+
     cmp si, COUNT_CIL
-    jg start_load ; if (si > COUNT_CIL) { goto start_load }
+    jl .start_load ; if (si < COUNT_CIL) { goto start_load }
+
+    jmp $
+
+allbad:
+    mov ax, 0xe00 + '@'
+    int 0x10
+
 
     ;jmp 0x7fe0:0x0000+end_copy_vbr  ; Переход на новый адрес 0x7FE0:0, куда был скопирован код.
 
