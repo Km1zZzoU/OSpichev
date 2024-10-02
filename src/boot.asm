@@ -5,61 +5,75 @@
 [BITS 16]           ; Указание ассемблеру, что код будет выполняться в 16-битном режиме.
 jmp _start
 
-; копируем участок памяти,
-; начинающийся с %1:0
-; в %2:0 длинной %3 байт
-%macro copy 3
+copy:; копируем участок памяти, начинающийся с %1:0 в %2:0 длинной %3 байт
     push si
     push di
 
 ; mov out ds:si (ds*16+si)
-    mov ax, %1
     mov ds, ax
     xor si, si
 ; в сегментные регистры нельзя писать
 ; поэтому пузырим черех другие
-    mov ax, %2
+    mov ax, bx
     mov es, ax
     xor di, di
 ; mov to  es:di (es*16+di)
 
-    mov cx, %3
-    rep movsb
+    rep movsb ;в cx колиество байт
 
     pop di
     pop si
-%endmacro
+    ret
 
-%macro read_chs 2; %1 - номер цилиндра, %2 - СЕГМЕНТ, того куда пишем (смещение=0)
+read_chs:; ax - номер цилиндра, bx - СЕГМЕНТ, того куда пишем (смещение=0)
+    push si
+    xor si, si      ; устанавливаем номер попытки
+.new_attempt:
+    inc si
+    cmp si, 25
+    jg all_bad
 
-    mov ax, %1      ; номер цилиндра
     mov ch, al      ; номер цилиндра
     mov cl, 1       ; номер первого сектора
 
     mov ah, 0x2     ; номер функции
     mov al, 18      ; количесто секторов
-
-    mov bx, %2
-    mov es, bx      ; адрес того, куда пишем (0xadres:0)
+    
+;в bx лежит нужный СЕГМЕНТ
+    mov es, bx      ; СЕГМЕНТ того, куда пишем (0xadres:0)
     xor bx, bx      ; --------------------------------^-
+;из комбинации es и bx получаем адрес
 
     xor dh, dh      ; номер головки
 
     int 0x13        ; номер прерывания
-    jc allbad
-    ;mov bx, %2
+    jc .new_attempt
+
     mov bx, SIZE_9KB; 9 килобайт
-    ;mov es, bx      ; куда снова пишем
+
+    mov ah, 0x2     ; номер функции       ;
+    mov al, 18      ; количесто секторов  ;
+
     inc dh          ; меняем головку
+
     int 0x13        ; номер прерывания
-    jc allbad
+    jc .new_attempt
 
-%endmacro
+    pop si
+    ret
 
-%macro load_chs 2; %1 - номер цилиндра, %2 - СЕГМЕНТ, того куда копируем (смещение=0)
-    read_chs %1, BUFF
-    ;copy BUFF, %2, SIZE_18KB
-%endmacro
+load_chs: ; ax - номер цилиндра, bx - СЕГМЕНТ, того куда копируем (смещение=0)
+    push bx;<<----------------------------------|
+    ;mov ax ax    ; в ax и так то че надо      ;|
+    mov bx, BUFF  ; СЕГМЕНТ того куда читаем   ;|
+    call read_chs ; читаем сектор в буффер     ;|
+                                               ;|
+    mov ax, BUFF                               ;|
+    pop bx;<<-----------------------------------|
+    mov cx, SIZE_18KB
+    call copy
+    
+    ret
 
 print_string:
     mov ah, 0x0E    ; Устанавливаем режим BIOS для вывода символов в текстовом режиме (INT 0x10).
@@ -83,22 +97,19 @@ _start:
     mov ax, 0x07c0      ; Загружаем значение 0x07C0 в регистр AX.
     mov ds, ax          ; Устанавливаем сегмент данных (DS) на 0x07C0 (начало загрузочного сектора).
 
-
     sti                 ; Включаем прерывания после инициализации сегментов.
 
     mov si, msg
     call print_string
 
-    xor si, si      ; итератор по цилиндрам
+    xor si, si        ; итератор по цилиндрам
     mov di, START_SEG ;
 .start_load:
+
+    mov ax, si      ;аргумент 1
+    mov bx, di      ;аргумент 2
+    call load_chs
     inc si
-
-    mov ax, si
-    add ax, 0xe30 ; для отладки
-    int 0x10
-
-    load_chs si, di
 
     add di, SIZE_18KB / 16; танцы с бубном так как di - сегмент
 
@@ -106,13 +117,13 @@ _start:
     jl .start_load ; if (si < COUNT_CIL) { goto start_load }
 
     jmp $
+    ;jmp 0x1400:0x0200+end_copy_vbr  ; Переход на новый адрес 0x7FE0:0, куда был скопирован код.
 
-allbad:
-    mov ax, 0xe00 + '@'
+all_bad:
+    add ax, 0xe00 ;отловить ошибку от int_0x13(0x2)
     int 0x10
 
 
-    ;jmp 0x7fe0:0x0000+end_copy_vbr  ; Переход на новый адрес 0x7FE0:0, куда был скопирован код.
 
 msg db '  ____   _____              _', 10, 13
     db ' / __ \ / ____|     (*)    | |', 10, 13
@@ -124,6 +135,7 @@ msg db '  ____   _____              _', 10, 13
     db '              |_|', 10, 13, 0
 
 START_SEG equ 0x1400  ; СГЕМЕНТ тоого, где начинается OS
+; 0х14000 тк так получается довольно выровненный адрес + целое и четное число цилиндров до 0х80000
 COUNT_CIL equ 24      ; (0x80000 - 0x14000) / size_18kb
 BUFF      equ 0x100   ; СЕГМЕНТ буфера, НЕ адрес
 SIZE_9KB  equ 0x2400
