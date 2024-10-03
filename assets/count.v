@@ -8,7 +8,7 @@ fn main() {
 		return
 	}
 	mut sum := 0
-	start_index := 0x14648
+	start_index := 0x14200
 	for i := 0x0; i < 0x6BE00; i++ {
 		sum += line[start_index + i]
 	}
