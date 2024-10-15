@@ -116,9 +116,6 @@ _start:
     or   al,  1
     mov  cr0, eax
 
-    jmp CODE_SEG:tramplin + 0x7c00
-[bits 32]
-tramplin:
     mov esp, START_PTR ; настраиваем стек
     mov bx,  DATA_SEG
     mov ss,  bx
@@ -126,6 +123,9 @@ tramplin:
     mov ds,  bx
     mov fs,  bx
     mov gs,  bx
+    jmp CODE_SEG:tramplin + 0x7c00
+[bits 32]
+tramplin:
     jmp CODE_SEG:0x14200
     ; Welcome to the C!
 [bits 16]
