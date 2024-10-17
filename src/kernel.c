@@ -7,6 +7,7 @@ void vga_prints(char* str, int* x, int* y);
 void shift_down();
 void init_printer();
 void printf(char* fmt, ...);
+short get_colar(int n);
 
 #define start_ptr 0xb8000
 #define size_x (80)
@@ -17,12 +18,10 @@ void printf(char* fmt, ...);
 int curx = 0, cury = 0;
 
 int kmain() {
-  vga_clear();
+  init_printer();
   char msg[4] = "123";
-  for (int i = 0; i < 600; i++) {
-    printf("%d ", i);
-  }
-  printf("Hello World! can u solve this?: %s-%d+%h, btw best bytes it is %h also i hate %h%h", msg, 456, 0x7c00, 0x55AA, 0xCAFE, 0xBABE);
+  
+  printf("Hello World! can u solve this?: %s-%d+%h, btw best bytes it is %h also i hate %h%h", msg, 450, 0x7c00, 0x55AA, 0xCAFE, 0xBABE);
   printf("\n===\n ====\n  =======\n   ===========----################*****++++===\n     ==============              +%%%%%%%%%%%%%%##**+==\n       =================         *%%%%%%%%%%%%%%%%%%%%%#*+=\n     =======================     *%%%%%%%%%%%%%%%%%%%%%%%%%#*=\n   ==----------------------------+############################*=   ====    ====\n  ===============================+##############################++=    =++=    =\n  ==                             *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%++=    =++=    =\n   ========                      +%%%%%%%%%%%%%%%%%%%%%%%%%%%%%+   ====    ====\n     +#%%%%%%####***====++++     *%%%%%%%%%%%%%%%%%%%%%%%%%%#*=\n        =*##%%%%%%%%%%%%%%%%%%%%#*%%%%%%%%%%%%%%%%%%%%%%##+=\n            ==+#************#%%%#*%%%%%%%%%%%%%%%%##*++=\n              +#-=         *#%%%*+#######***+++==\n              #+          ** =*#*     *#*\n             +#          =#=       =+##+\n             #+          *%#**#*###* ____   _____              _\n            *#          =#@=======  / __ \\ / ____|     (*)    | |\n           =#=          *=         | |  | | (___  _ __  _  ___| |__   _____   __\n           **          =#=         | |  | |\\___ \\| ._ \\| |/ __| ._ \\ / _ \\ \\ / /\n          =#=          *=          | |__| |____) | |_) | | (__| | | |  __/\\ V /\n          **          =#=           \\____/ \\____/| .__/|_|\\___|_| |_|\\___| \\_/\n         *#==        =+#=                        | |\n         +*+*+++++++++**=                        |_|");
   //for (int i = 0;; i++) {
   //  printf("%h", (i << 2 / 3 * 124887042 + 2 * (i << 2 / 3 * 124887042)) >> i);
@@ -90,6 +89,7 @@ void vga_printc(char c, int* x, int* y) {
     }
   }
 }
+
 //в цикле пишем *str по конкретным координатам
 void vga_prints(char* str, int* x, int* y) {
   for (; *str != '\0';)
@@ -129,9 +129,35 @@ void vga_putn(int x, int base) {
   }
 }
 
+short get_colar(int n) {
+  int max = size_x + size_y - 1;
+  int colors = 8;
+  int pixel_for_color = (int) max / (colors);
+  int color = (int) n / pixel_for_color;
+  switch (color) {
+    case 0:
+      return 0x100;
+    case 1:
+      return 0xB00;
+    case 2:
+      return 0x300;
+    case 3:
+      return 0x900;
+    case 4:
+      return 0x500;
+    case 5:
+      return 0xD00;
+    case 6:
+      return 0x400;
+    case 7:
+      return 0xC00;
+  }
+  return 0;
+}
+
 void vga_clear() {
   for (int x = 0; x < size_x; x++) {
     for (int y = 0; y < size_y; y++)
-      getptr(x, y, short) = 0x0A00;
+      getptr(x, y, short) = get_colar(x+y);
   }
 }
