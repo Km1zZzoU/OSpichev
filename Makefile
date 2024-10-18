@@ -7,7 +7,7 @@ BOOT_IMG := boot.img
 QEMU := qemu-system-i386
 
 NASM_FLAGS := -fbin
-GCC_FLAGS := -m32 -ffreestanding -fno-pic -O0 -mno-sse -fno-stack-protector
+GCC_FLAGS := -m32 -ffreestanding -fno-pic -mno-sse -fno-stack-protector
 LD_FLAGS_KERNEL := -m elf_i386 -Ttext 0x14200 --oformat binary
 DD_FLAGS := conv=notrunc
 
@@ -34,7 +34,7 @@ $(KERNEL_BIN): $(SRC_DIR)/kernel.c
 
 run: $(BOOT_IMG)
 # Запуск образа в QEMU
-	$(QEMU) -fda $< -monitor stdio
+	$(QEMU) -m 512 -fda $< -monitor stdio
 
 clean:
 # Удаление временных файлов

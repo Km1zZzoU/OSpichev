@@ -65,9 +65,9 @@ interrupt_handler_t interrupt_handlers[256];
 int kmain() {
   //return 0;
   init_printer();
-  for (int i = 0; i < 600; i++) {
-    printf("######", i);
-  }
+    for (int i = 0; i < 600; i++) {
+      printf("######", i);
+    }
   printf("   Hello World! \n");
   // printf("Hello World! can u solve this?: %s-%d+%h, btw best bytes it is %h
   // also i hate %h%h", msg, 450, 0x7c00, 0x55AA, 0xCAFE, 0xBABE);
