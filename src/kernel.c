@@ -1,3 +1,5 @@
+#include <bits/pthreadtypes.h>
+int kmain();
 void vga_clear();
 void vga_puts(char* c);
 void vga_putc(char c);
@@ -8,25 +10,125 @@ void shift_down();
 void init_printer();
 void printf(char* fmt, ...);
 short get_colar(int n);
+static void panic_handler(int vector);
+void kpanic(char* msg, int vector);
 
+void _start() {
+  kmain();
+}
+#define byte unsigned char
+typedef unsigned short u16;
+typedef unsigned int u32;
 #define start_ptr 0xb8000
 #define size_x (80)
 #define size_y (25)
-#define infinite_loop for (;;);
 #define getptr(x,y,t) *((t*) (start_ptr + 2 * ((y) * size_x + (x))))
+#define IDT_SIZE 256
+
+#define FUNC_GEN(x) static void trap_##x() { panic_handler(0b##x); }
+#define FUNC_GEN_2(b1) FUNC_GEN(b1##0) FUNC_GEN(b1##1)
+#define FUNC_GEN_4(b2) FUNC_GEN_2(b2##0) FUNC_GEN_2(b2##1)
+#define FUNC_GEN_8(b3) FUNC_GEN_4(b3##0) FUNC_GEN_4(b3##1)
+#define FUNC_GEN_16(b4) FUNC_GEN_8(b4##0) FUNC_GEN_8(b4##1)
+#define FUNC_GEN_32(b5) FUNC_GEN_16(b5##0) FUNC_GEN_16(b5##1)
+#define FUNC_GEN_64(b6) FUNC_GEN_32(b6##0) FUNC_GEN_32(b6##1)
+#define FUNC_GEN_128(b7) FUNC_GEN_64(b7##0) FUNC_GEN_64(b7##1)
+#define FUNC_GEN_ALL() FUNC_GEN_128(0) FUNC_GEN_128(1)
+
+FUNC_GEN_ALL()
+
+#define FUNC_ASSIGN(x) traps[0b##x] = trap_##x;
+#define FUNC_ASSIGN_2(b1) FUNC_ASSIGN(b1##0) FUNC_ASSIGN(b1##1)
+#define FUNC_ASSIGN_4(b2) FUNC_ASSIGN_2(b2##0) FUNC_ASSIGN_2(b2##1)
+#define FUNC_ASSIGN_8(b3) FUNC_ASSIGN_4(b3##0) FUNC_ASSIGN_4(b3##1)
+#define FUNC_ASSIGN_16(b4) FUNC_ASSIGN_8(b4##0) FUNC_ASSIGN_8(b4##1)
+#define FUNC_ASSIGN_32(b5) FUNC_ASSIGN_16(b5##0) FUNC_ASSIGN_16(b5##1)
+#define FUNC_ASSIGN_64(b6) FUNC_ASSIGN_32(b6##0) FUNC_ASSIGN_32(b6##1)
+#define FUNC_ASSIGN_128(b7) FUNC_ASSIGN_64(b7##0) FUNC_ASSIGN_64(b7##1)
+#define FUNC_ASSIGN_ALL FUNC_ASSIGN_128(0) FUNC_ASSIGN_128(1)
+
+
+static void* START = 0x100000;
+#define END 0x400000
+
+void* make(u32 size) {
+  if ((u32) START + size > (u32) END) {
+    kpanic("out of memory", -1);
+  }
+  void* cur = START;
+  START += size;
+  return cur;
+}
 
 int curx = 0, cury = 0;
 
+#pragma pack(push, 1)
+typedef struct {
+  u16 low_bits;
+  u16 segment_selector;
+  u16 flags;
+  u16 high_bits;
+} gdst;
+
+typedef struct {
+  u16 size;
+  u32 ptr;
+} didt;
+#pragma pack(push)
+
 int kmain() {
   init_printer();
-  char msg[4] = "123";
-  
-  printf("Hello World! can u solve this?: %s-%d+%h, btw best bytes it is %h also i hate %h%h", msg, 450, 0x7c00, 0x55AA, 0xCAFE, 0xBABE);
-  printf("\n===\n ====\n  =======\n   ===========----################*****++++===\n     ==============              +%%%%%%%%%%%%%%##**+==\n       =================         *%%%%%%%%%%%%%%%%%%%%%#*+=\n     =======================     *%%%%%%%%%%%%%%%%%%%%%%%%%#*=\n   ==----------------------------+############################*=   ====    ====\n  ===============================+##############################++=    =++=    =\n  ==                             *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%++=    =++=    =\n   ========                      +%%%%%%%%%%%%%%%%%%%%%%%%%%%%%+   ====    ====\n     +#%%%%%%####***====++++     *%%%%%%%%%%%%%%%%%%%%%%%%%%#*=\n        =*##%%%%%%%%%%%%%%%%%%%%#*%%%%%%%%%%%%%%%%%%%%%%##+=\n            ==+#************#%%%#*%%%%%%%%%%%%%%%%##*++=\n              +#-=         *#%%%*+#######***+++==\n              #+          ** =*#*     *#*\n             +#          =#=       =+##+\n             #+          *%#**#*###* ____   _____              _\n            *#          =#@=======  / __ \\ / ____|     (*)    | |\n           =#=          *=         | |  | | (___  _ __  _  ___| |__   _____   __\n           **          =#=         | |  | |\\___ \\| ._ \\| |/ __| ._ \\ / _ \\ \\ / /\n          =#=          *=          | |__| |____) | |_) | | (__| | | |  __/\\ V /\n          **          =#=           \\____/ \\____/| .__/|_|\\___|_| |_|\\___| \\_/\n         *#==        =+#=                        | |\n         +*+*+++++++++**=                        |_|");
-  //for (int i = 0;; i++) {
-  //  printf("%h", (i << 2 / 3 * 124887042 + 2 * (i << 2 / 3 * 124887042)) >> i);
-  //}
-  infinite_loop
+  void** traps = make(IDT_SIZE * sizeof(void*));
+
+  traps[0b000000] = trap_00000000;
+  //for (;;);
+  //FUNC_ASSIGN_ALL
+
+  gdst *idt = make(IDT_SIZE * sizeof(gdst));
+
+  for (int vector = 0; vector < IDT_SIZE; vector++) {
+    byte* handler = traps[vector];
+    u16 low = (u16) handler;
+    u16 seg_sel = 8;
+    u16 flags = 0x8f00;
+    u16 high = (u32) handler >> 16;
+
+    idt[vector].segment_selector = seg_sel;
+    idt[vector].low_bits = low;
+    idt[vector].flags = flags;
+    idt[vector].high_bits = high;
+  }
+  didt didt = {
+  .size = (u16) (sizeof(gdst) * IDT_SIZE - 1),
+  .ptr = (u32) idt,
+  };
+
+  __asm__ __volatile__("lidt %0" : : "m"(didt));
+
+  int a = 8 / 0;
+  printf("Hello World!\n");
+  printf("%d\n", a);
+  //for (;;);
+  __asm__ __volatile__(
+    "sti\n\t"
+    "int %0"
+    :
+    : "i"(8)
+  );
+  //printf("\n===\n ====\n  =======\n   ===========----################*****++++===\n     ==============              +%%%%%%%%%%%%%%##**+==\n       =================         *%%%%%%%%%%%%%%%%%%%%%#*+=\n     =======================     *%%%%%%%%%%%%%%%%%%%%%%%%%#*=\n   ==----------------------------+############################*=   ====    ====\n  ===============================+##############################++=    =++=    =\n  ==                             *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%++=    =++=    =\n   ========                      +%%%%%%%%%%%%%%%%%%%%%%%%%%%%%+   ====    ====\n     +#%%%%%%####***====++++     *%%%%%%%%%%%%%%%%%%%%%%%%%%#*=\n        =*##%%%%%%%%%%%%%%%%%%%%#*%%%%%%%%%%%%%%%%%%%%%%##+=\n            ==+#************#%%%#*%%%%%%%%%%%%%%%%##*++=\n              +#-=         *#%%%*+#######***+++==\n              #+          ** =*#*     *#*\n             +#          =#=       =+##+\n             #+          *%#**#*###* ____   _____              _\n            *#          =#@=======  / __ \\ / ____|     (*)    | |\n           =#=          *=         | |  | | (___  _ __  _  ___| |__   _____   __\n           **          =#=         | |  | |\\___ \\| ._ \\| |/ __| ._ \\ / _ \\ \\ / /\n          =#=          *=          | |__| |____) | |_) | | (__| | | |  __/\\ V /\n          **          =#=           \\____/ \\____/| .__/|_|\\___|_| |_|\\___| \\_/\n         *#==        =+#=                        | |\n         +*+*+++++++++**=                        |_|");
+  for (;;);
+}
+
+//__inline__
+void panic_handler(int vector) {
+  kpanic("unhandled interrupt %h", vector);
+}
+
+void kpanic(char* msg, int vector) {
+  init_printer();
+  printf(msg, vector);
+  printf("\n!!!!!!!!!!!!!!!!!");
+  for (;;);
 }
 
 void printf(char* fmt, ...) {
@@ -109,6 +211,10 @@ void init_printer() {
 }
 
 void vga_putn(int x, int base) {
+  if (!x) {
+    vga_putc('0');
+    return;
+  }
   if (x < 0) {
     vga_putc('-');
     x *= -1;
@@ -123,8 +229,8 @@ void vga_putn(int x, int base) {
     }
     i--;
   }
-  for (int i = 0; i < 10; i++) {
-    if (chars[i] != 0)
+  for (int i = 0; i++ < 10;) {
+    if (!chars[i])
       vga_putc(chars[i]);
   }
 }
@@ -132,32 +238,34 @@ void vga_putn(int x, int base) {
 short get_colar(int n) {
   int max = size_x + size_y - 1;
   int colors = 8;
-  int pixel_for_color = (int) max / (colors);
-  int color = (int) n / pixel_for_color;
+  int pixel_for_color = max / colors;
+  int color = n / pixel_for_color;
   switch (color) {
     case 0:
-      return 0x100;
+      return 0x7100;
     case 1:
-      return 0xB00;
+      return 0x7B00;
     case 2:
-      return 0x300;
+      return 0x7300;
     case 3:
-      return 0x900;
+      return 0x7900;
     case 4:
-      return 0x500;
+      return 0x7500;
     case 5:
-      return 0xD00;
+      return 0x7D00;
     case 6:
-      return 0x400;
+      return 0x7400;
     case 7:
-      return 0xC00;
+      return 0x7C00;
   }
   return 0;
 }
 
 void vga_clear() {
   for (int x = 0; x < size_x; x++) {
-    for (int y = 0; y < size_y; y++)
+    for (int y = 0; y < size_y; y++) {
       getptr(x, y, short) = get_colar(x+y);
+      getptr(x, y, short) = 0x7c00;
+    }
   }
 }
