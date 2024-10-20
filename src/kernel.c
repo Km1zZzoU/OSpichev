@@ -1,5 +1,6 @@
-#include <bits/pthreadtypes.h>
 int kmain();
+typedef unsigned short u16;
+typedef unsigned int u32;
 void vga_clear();
 void vga_puts(char* c);
 void vga_putc(char c);
@@ -8,17 +9,17 @@ void vga_printc(char c, int* x, int* y);
 void vga_prints(char* str, int* x, int* y);
 void shift_down();
 void init_printer();
-void printf(char* fmt, ...);
+void puts(char* fmt, ...);
 short get_colar(int n);
 static void panic_handler(int vector);
 void kpanic(char* msg, int vector);
+void* make(u32 size);
+int curx = 0, cury = 0;
 
-void _start() {
+void __start__() {
   kmain();
 }
 #define byte unsigned char
-typedef unsigned short u16;
-typedef unsigned int u32;
 #define start_ptr 0xb8000
 #define size_x (80)
 #define size_y (25)
@@ -47,20 +48,10 @@ FUNC_GEN_ALL()
 #define FUNC_ASSIGN_128(b7) FUNC_ASSIGN_64(b7##0) FUNC_ASSIGN_64(b7##1)
 #define FUNC_ASSIGN_ALL FUNC_ASSIGN_128(0) FUNC_ASSIGN_128(1)
 
-
 static void* START = 0x100000;
 #define END 0x400000
 
-void* make(u32 size) {
-  if ((u32) START + size > (u32) END) {
-    kpanic("out of memory", -1);
-  }
-  void* cur = START;
-  START += size;
-  return cur;
-}
 
-int curx = 0, cury = 0;
 
 #pragma pack(push, 1)
 typedef struct {
@@ -80,9 +71,7 @@ int kmain() {
   init_printer();
   void** traps = make(IDT_SIZE * sizeof(void*));
 
-  traps[0b000000] = trap_00000000;
-  //for (;;);
-  //FUNC_ASSIGN_ALL
+  FUNC_ASSIGN_ALL
 
   gdst *idt = make(IDT_SIZE * sizeof(gdst));
 
@@ -105,33 +94,52 @@ int kmain() {
 
   __asm__ __volatile__("lidt %0" : : "m"(didt));
 
-  int a = 8 / 0;
-  printf("Hello World!\n");
-  printf("%d\n", a);
-  //for (;;);
+  int a = 228 / 1;
+  puts("\n%d\n", a);
   __asm__ __volatile__(
     "sti\n\t"
     "int %0"
     :
-    : "i"(8)
+    : "i"(26)
   );
-  //printf("\n===\n ====\n  =======\n   ===========----################*****++++===\n     ==============              +%%%%%%%%%%%%%%##**+==\n       =================         *%%%%%%%%%%%%%%%%%%%%%#*+=\n     =======================     *%%%%%%%%%%%%%%%%%%%%%%%%%#*=\n   ==----------------------------+############################*=   ====    ====\n  ===============================+##############################++=    =++=    =\n  ==                             *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%++=    =++=    =\n   ========                      +%%%%%%%%%%%%%%%%%%%%%%%%%%%%%+   ====    ====\n     +#%%%%%%####***====++++     *%%%%%%%%%%%%%%%%%%%%%%%%%%#*=\n        =*##%%%%%%%%%%%%%%%%%%%%#*%%%%%%%%%%%%%%%%%%%%%%##+=\n            ==+#************#%%%#*%%%%%%%%%%%%%%%%##*++=\n              +#-=         *#%%%*+#######***+++==\n              #+          ** =*#*     *#*\n             +#          =#=       =+##+\n             #+          *%#**#*###* ____   _____              _\n            *#          =#@=======  / __ \\ / ____|     (*)    | |\n           =#=          *=         | |  | | (___  _ __  _  ___| |__   _____   __\n           **          =#=         | |  | |\\___ \\| ._ \\| |/ __| ._ \\ / _ \\ \\ / /\n          =#=          *=          | |__| |____) | |_) | | (__| | | |  __/\\ V /\n          **          =#=           \\____/ \\____/| .__/|_|\\___|_| |_|\\___| \\_/\n         *#==        =+#=                        | |\n         +*+*+++++++++**=                        |_|");
+  puts("\n===\n ====\n  =======\n   ===========----################*****++++===\n     ==============              +%%%%%%%%%%%%%%##**+==\n       =================         *%%%%%%%%%%%%%%%%%%%%%#*+=\n     =======================     *%%%%%%%%%%%%%%%%%%%%%%%%%#*=\n   ==----------------------------+############################*=   ====    ====\n  ===============================+##############################++=    =++=    =\n  ==                             *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%++=    =++=    =\n   ========                      +%%%%%%%%%%%%%%%%%%%%%%%%%%%%%+   ====    ====\n     +#%%%%%%####***====++++     *%%%%%%%%%%%%%%%%%%%%%%%%%%#*=\n        =*##%%%%%%%%%%%%%%%%%%%%#*%%%%%%%%%%%%%%%%%%%%%%##+=\n            ==+#************#%%%#*%%%%%%%%%%%%%%%%##*++=\n              +#-=         *#%%%*+#######***+++==\n              #+          ** =*#*     *#*\n             +#          =#=       =+##+\n             #+          *%#**#*###* ____   _____              _\n            *#          =#@=======  / __ \\ / ____|     (*)    | |\n           =#=          *=         | |  | | (___  _ __  _  ___| |__   _____   __\n           **          =#=         | |  | |\\___ \\| ._ \\| |/ __| ._ \\ / _ \\ \\ / /\n          =#=          *=          | |__| |____) | |_) | | (__| | | |  __/\\ V /\n          **          =#=           \\____/ \\____/| .__/|_|\\___|_| |_|\\___| \\_/\n         *#==        =+#=                        | |\n         +*+*+++++++++**=                        |_|");
   for (;;);
 }
 
-//__inline__
+void* make(u32 size) {
+  if ((u32) START + size > (u32) END) {
+    kpanic("out of memory", -1);
+  }
+  void* cur = START;
+  START += size;
+  return cur;
+}
+
+__inline__
 void panic_handler(int vector) {
   kpanic("unhandled interrupt %h", vector);
 }
 
 void kpanic(char* msg, int vector) {
   init_printer();
-  printf(msg, vector);
-  printf("\n!!!!!!!!!!!!!!!!!");
+  puts("\n  ___                    ");
+  puts("\n /   \\                   ");
+  puts("\n|     |___________       ");
+  puts("\n \\___/          | \\      ");
+  puts("\n /   \\__________|_/ **   ");
+  puts("\n|     |              **  ");
+  puts("\n \\___/                ** \n                ");
+  puts(msg, vector);
   for (;;);
 }
 
-void printf(char* fmt, ...) {
+void init_printer() {
+  vga_clear();
+  curx = 0;
+  cury = 0;
+}
+
+void puts(char* fmt, ...) {
   char *p = fmt;
   int *arg = (int *)&fmt + 1; // Указатель на следующий аргумент
 
@@ -204,12 +212,6 @@ void vga_putc(char c) {
 }
 
 
-void init_printer() {
-  vga_clear();
-  curx = 0;
-  cury = 0;
-}
-
 void vga_putn(int x, int base) {
   if (!x) {
     vga_putc('0');
@@ -223,14 +225,13 @@ void vga_putn(int x, int base) {
   for (int i = 9; x > 0; x /= base) {
     char digit = x % base;
     if (digit < 10) {
-      chars[i] = digit + '0';
+      chars[i--] = digit + '0';
     } else {
-      chars[i] = digit - 10 + 'A';
+      chars[i--] = digit - 10 + 'A';
     }
-    i--;
   }
-  for (int i = 0; i++ < 10;) {
-    if (!chars[i])
+  for (int i = 0; i < 10; i++) {
+    if (chars[i] > 0)
       vga_putc(chars[i]);
   }
 }
