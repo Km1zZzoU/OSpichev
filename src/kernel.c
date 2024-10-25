@@ -16,6 +16,22 @@ void kpanic(char* msg, int vector);
 void* make(u32 size);
 int curx = 0, cury = 0;
 
+#pragma pack(push, 1)
+typedef struct {
+  u16 low_bits;
+  u16 segment_selector;
+  u16 flags;
+  u16 high_bits;
+} gdst;
+
+typedef struct {
+  u16 size;
+  u32 ptr;
+} didt;
+#pragma pack(push)
+
+gdst* init_idtable();
+
 void __start__() {
   kmain();
 }
@@ -52,41 +68,11 @@ FUNC_GEN_ALL()
 static void* START = 0x100000;
 #define END 0x400000
 
-#pragma pack(push, 1)
-typedef struct {
-  u16 low_bits;
-  u16 segment_selector;
-  u16 flags;
-  u16 high_bits;
-} gdst;
-
-typedef struct {
-  u16 size;
-  u32 ptr;
-} didt;
-#pragma pack(push)
-
 int kmain() {
   init_printer();
-  void** traps = make(IDT_SIZE * sizeof(void*));
 
-  FUNC_ASSIGN_ALL
+  gdst* idt = init_idtable();
 
-  gdst *idt = make(IDT_SIZE * sizeof(gdst));
-
-  for (int vector = 0; vector < IDT_SIZE; vector++) {
-    byte* handler = traps[vector];
-    u16 low = (u16) handler;
-    u16 seg_sel = 8;
-    u16 flags = 0b1000111000000000;
-    //flags     = 0b1000111100000000;
-    u16 high = (u32) handler >> 16;
-
-    idt[vector].segment_selector = seg_sel;
-    idt[vector].low_bits = low;
-    idt[vector].flags = flags;
-    idt[vector].high_bits = high;
-  }
   didt didt = {
   .size = (u16) (sizeof(gdst) * IDT_SIZE - 1),
   .ptr = (u32) idt,
@@ -97,13 +83,39 @@ int kmain() {
   int a = 228 / 1;
   printf("\n%d\n", a);
   __asm__ __volatile__(
-    "sti\n\t"
+    //"sti\n\t"
     "int %0"
     :
     : "i"(0x42)
   );
   printf("\n===\n ====\n  =======\n   ===========----################*****++++===\n     ==============              +%%%%%%%%%%%%%%##**+==\n       =================         *%%%%%%%%%%%%%%%%%%%%%#*+=\n     =======================     *%%%%%%%%%%%%%%%%%%%%%%%%%#*=\n   ==----------------------------+############################*=   ====    ====\n  ===============================+##############################++=    =++=    =\n  ==                             *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%++=    =++=    =\n   ========                      +%%%%%%%%%%%%%%%%%%%%%%%%%%%%%+   ====    ====\n     +#%%%%%%####***====++++     *%%%%%%%%%%%%%%%%%%%%%%%%%%#*=\n        =*##%%%%%%%%%%%%%%%%%%%%#*%%%%%%%%%%%%%%%%%%%%%%##+=\n            ==+#************#%%%#*%%%%%%%%%%%%%%%%##*++=\n              +#-=         *#%%%*+#######***+++==\n              #+          ** =*#*     *#*\n             +#          =#=       =+##+\n             #+          *%#**#*###* ____   _____              _\n            *#          =#@=======  / __ \\ / ____|     (*)    | |\n           =#=          *=         | |  | | (___  _ __  _  ___| |__   _____   __\n           **          =#=         | |  | |\\___ \\| ._ \\| |/ __| ._ \\ / _ \\ \\ / /\n          =#=          *=          | |__| |____) | |_) | | (__| | | |  __/\\ V /\n          **          =#=           \\____/ \\____/| .__/|_|\\___|_| |_|\\___| \\_/\n         *#==        =+#=                        | |\n         +*+*+++++++++**=                        |_|");
   for (;;);
+}
+
+gdst* init_idtable() {
+  void* traps[256];
+
+  FUNC_ASSIGN_ALL
+
+  gdst* idt = make(IDT_SIZE * sizeof(gdst));
+
+  for (int vector = 0; vector < IDT_SIZE; vector++) {
+    byte* handler = traps[vector];
+    u16 low = (u16) handler;
+    u16 seg_sel = 8;
+    u16 flags = 0b1000111000000000;
+    flags     = 0b1000111100000000;
+    /*
+*/
+    u16 high = (u32) handler >> 16;
+
+    idt[vector].segment_selector = seg_sel;
+    idt[vector].low_bits = low;
+    idt[vector].flags = flags;
+    idt[vector].high_bits = high;
+  }
+
+  return idt;
 }
 
 void* make(u32 size) {
