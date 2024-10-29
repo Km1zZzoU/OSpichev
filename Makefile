@@ -1,6 +1,7 @@
 SRC_DIR := src
 
 BOOT_BIN := boot.bin
+VESA_BIN := vesa.bin
 KERNEL_BIN := kernel.bin
 BOOT_IMG := boot.img
 
@@ -13,14 +14,19 @@ DD_FLAGS := conv=notrunc
 
 all: clean $(BOOT_IMG) run
 
-$(BOOT_IMG): $(BOOT_BIN) $(KERNEL_BIN)
+$(BOOT_IMG): $(BOOT_BIN) $(VESA_BIN) $(KERNEL_BIN)
 	dd if=/dev/zero of=$@ bs=1024 count=1440
 
 	dd if=$(BOOT_BIN) of=$@ $(DD_FLAGS)
 
-	dd if=$(KERNEL_BIN) of=$@ $(DD_FLAGS) seek=1
+	dd if=$(VESA_BIN) of=$@ $(DD_FLAGS) seek=1
+
+	dd if=$(KERNEL_BIN) of=$@ $(DD_FLAGS) seek=2
 
 $(BOOT_BIN): $(SRC_DIR)/boot.asm
+	nasm $(NASM_FLAGS) $< -o $@
+
+$(VESA_BIN): $(SRC_DIR)/vesa.asm
 	nasm $(NASM_FLAGS) $< -o $@
 
 $(KERNEL_BIN): $(SRC_DIR)/kernel.c
