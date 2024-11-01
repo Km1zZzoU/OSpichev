@@ -92,43 +92,42 @@ static void* START = 0x100000;
 
 
 int kmain() {
+
   init_printer();
 
-  color_printf(blue1, "[");
-  color_printf(red1, "host");
-  color_printf(green0, "#");
-  color_printf(yellow0, "ezhe");
-  color_printf(blue1, "]");
-  printf(" ");
-  color_printf(blue1, "/");
-  color_printf(green0, "home");
-  color_printf(blue1, "/ ");
-  color_printf(fg, "neofetch\n");
-  color_printf(blue1, "\n  ___                  | ");
-  printf("Sys.pro Department");
-  color_printf(blue1, "\n /   \\                 | ");
-  printf("Group 23126");
-  color_printf(blue1, "\n| ^.^ \\_               | ");
-  printf("Operation");
-  color_printf(blue1, "\n \\      \\___   _       | ");
-  printf("System");
-  color_printf(blue1, "\n  \\      __ \\_/#\\      | ");
-  printf("Engineering");
-  color_printf(blue1, "\n   \\_/\\_/  \\____/\n\n");
-  color_printf(blue1, "[");
-  color_printf(red1, "host");
-  color_printf(green0, "#");
-  color_printf(yellow0, "ezhe");
-  color_printf(blue1, "]");
-  printf(" ");
-  color_printf(blue1, "/");
-  color_printf(green0, "home");
-  color_printf(blue1, "/ ");
-  printf("_");
-  //printf("%h", 228);
-
+  // color_printf(blue1, "[");
+  // color_printf(red1, "host");
+  // color_printf(green0, "#");
+  // color_printf(yellow0, "ezhe");
+  // color_printf(blue1, "]");
+  // printf(" ");
+  // color_printf(blue1, "/");
+  // color_printf(green0, "home");
+  // color_printf(blue1, "/ ");
+  // color_printf(fg, "neofetch\n");
+  // color_printf(blue1, "\n  ___                  | ");
+  // color_printf(blue1, "\n /   \\                 | ");
+  // printf("Operation");
+  // color_printf(blue1, "\n| ^.^ \\_               | ");
+  // printf("System");
+  // color_printf(blue1, "\n \\      \\___   _       | ");
+  // printf("Engineering");
+  // color_printf(blue1, "\n  \\      __ \\_/#\\      | ");
+  // color_printf(blue1, "\n   \\_/\\_/  \\____/\n\n");
+  // color_printf(blue1, "[");
+  // color_printf(red1, "host");
+  // color_printf(green0, "#");
+  // color_printf(yellow0, "ezhe");
+  // color_printf(blue1, "]");
+  // printf(" ");
+  // color_printf(blue1, "/");
+  // color_printf(green0, "home");
+  // color_printf(blue1, "/ ");
+  // printf("_");
+  // //printf("%h", 228);
 
   for (;;);
+
   gdst* idt = init_idtable();
 
   didt didt = {
@@ -138,13 +137,13 @@ int kmain() {
 
   __asm__ __volatile__("lidt %0" : : "m"(didt));
 
-  int a = 0 / 1;
+  int a = 1 / 1;
   printf("%d", a);
   __asm__ __volatile__(
-    //"sti\n\t"
+    "sti\n\t"
     "int %0"
     :
-    : "i"(0x86)
+    : "i"(0x42)
   );
   printf("\n===\n ====\n  =======\n   ===========----################*****++++===\n     ==============              +%%%%%%%%%%%%%%##**+==\n       =================         *%%%%%%%%%%%%%%%%%%%%%#*+=\n     =======================     *%%%%%%%%%%%%%%%%%%%%%%%%%#*=\n   ==----------------------------+############################*=   ====    ====\n  ===============================+##############################++=    =++=    =\n  ==                             *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%++=    =++=    =\n   ========                      +%%%%%%%%%%%%%%%%%%%%%%%%%%%%%+   ====    ====\n     +#%%%%%%####***====++++     *%%%%%%%%%%%%%%%%%%%%%%%%%%#*=\n        =*##%%%%%%%%%%%%%%%%%%%%#*%%%%%%%%%%%%%%%%%%%%%%##+=\n            ==+#************#%%%#*%%%%%%%%%%%%%%%%##*++=\n              +#-=         *#%%%*+#######***+++==\n              #+          ** =*#*     *#*\n             +#          =#=       =+##+\n             #+          *%#**#*###* ____   _____              _\n            *#          =#@=======  / __ \\ / ____|     (*)    | |\n           =#=          *=         | |  | | (___  _ __  _  ___| |__   _____   __\n           **          =#=         | |  | |\\___ \\| ._ \\| |/ __| ._ \\ / _ \\ \\ / /\n          =#=          *=          | |__| |____) | |_) | | (__| | | |  __/\\ V /\n          **          =#=           \\____/ \\____/| .__/|_|\\___|_| |_|\\___| \\_/\n         *#==        =+#=                        | |\n         +*+*+++++++++**=                        |_|");
   for (;;);
@@ -185,12 +184,11 @@ void* make(u32 size) {
 
 __inline__
 void panic_handler(int vector) {
-  kpanic("%h", vector);
+  kpanic("PANIC!!!! FIX ME PLS!!!! ERROR CODE: %h", vector);
 }
 
 void kpanic(char* msg, int vector) {
-  //init_printer();
-  /*
+  init_printer();
   for (int x = 0; x < w; x++) {
     for (int y = 0; y < h; y++) {
       u32 crd = x + y * w;
@@ -201,15 +199,24 @@ void kpanic(char* msg, int vector) {
       }
     }
   }
+  /*
   */
-  curx = 49;
+  curx = 40;
   cury = 20;
-  printf(msg, vector);
+  color_printf(0, msg, vector);
   for (;;);
 }
 
 void init_printer() {
   vga_clear();
+  for (int x = 4; x < w - 4; x++) {
+    for (int y = 4; y < h - 4; ++y) {
+      int r = ((w/2-x | h/2-y) + ((w/2-x)*(w/2-x) + (h/2-y)*(h/2-y) >> (x & 11))) % 0x100 & 0xff;
+      int g = ((w/2-x ^ h/2-y) + ((w/2-x)*(w/2-x) + (h/2-y)*(h/2-y) >> (y & 9))) % 0x100 & 0xff;
+      int b = ((w/2-x & h/2-y) + ((w/2-x)*(w/2-x) + (h/2-y)*(h/2-y) >> (x - y & 11))) % 0x100 & 0xff;
+      getptr(0, 0, y * w + x) = r << 16 | g << 8 | b;
+    }
+  }
   curx = 0;
   cury = 0;
 }
@@ -306,6 +313,7 @@ void vga_putc(colorType color, char c) {
 
 
 void vga_putn(colorType color, int x, int base) {
+  // for (;;);
   if (!x) {
     vga_putc(color, '0');
     return;
@@ -366,6 +374,59 @@ void vga_clear() {
     }
   }
 }
+/*
+typedef struct{
+  int val;
+  struct Node* next;
+} Node;
+
+Node* foo(int a, int b) {
+  Node* node1 = malloc(sizeof(Node*));
+  Node* node2 = malloc(sizeof(Node*));
+  node1->val = a;
+  node1->next = node2;
+  node2->val = b;
+  return node1;
+}
+
+int bar() {
+  Node* root = foo(1, 2);
+  printf("%d->%d\n", root->val, root->next->val);
+  free(root->next);
+  free(root);
+}
+
+int main() {
+  bar();
+}
+
+Node* foo(int a, Node* b) {
+  Node node1;
+  node1.val = a;
+  node1.next = b;
+  return &node1;
+}
+
+int bar() {
+  Node node2 = {2, 0};
+  Node* root1 = foo(0, &node2);
+  printf("%d->%d\n", root1->val, root1->next->val);
+  Node* root2 = foo(1, &node2);
+  printf("%d->%d\n", root2->val, root2->next->val);
+}
+
+int bar() {
+  Node node2 = {2, 0};
+  Node* root1 = foo(0, &node2);
+  printf("%d->%d\n", root1->val, root1->next->val);
+  Node* root2 = foo(1, &node2);
+  printf("%d->%d\n", root2->val, root2->next->val);
+}
+
+int main() {
+  bar();
+}
+*/
 
 u16 font[256][24] = {
     {//0
