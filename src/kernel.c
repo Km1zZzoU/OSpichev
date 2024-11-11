@@ -14,7 +14,7 @@ short get_colar(int n);
 static void panic_handler(int vector);
 void kpanic(char* msg, int vector);
 void* make(u32 size);
-
+extern void __loop();
 int curx = 0, cury = 0;
 
 #pragma pack(push, 1)
@@ -72,6 +72,7 @@ static void* START = 0x100000;
 int kmain() {
   init_printer();
 
+  __loop();
   gdst* idt = init_idtable();
 
   didt didt = {

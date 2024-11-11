@@ -1,7 +1,7 @@
 ENTRY(__start__)
 OUTPUT_FORMAT(binary)
 
-SECTIONS { 
+SECTIONS {
     . = 0x14200;
 
     .text : {

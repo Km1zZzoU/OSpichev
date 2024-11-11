@@ -134,6 +134,7 @@ all_bad:
     add ax, 0xe00 ;отловить ошибку от int_0x13(0x2)
     int 0x10
 
+
 gdt_start:
     dq 0x0
 gdt_code:
