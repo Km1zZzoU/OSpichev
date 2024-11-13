@@ -16,13 +16,14 @@ void shift_down();
 void init_printer();
 void printf(char* fmt, ...);
 short get_colar(int n);
-static void panic_handler(int vector);
-void kpanic(int vector, char *msg, ...);
+void kpanic(char *msg, ...);
 void* make(u32 size);
 void load_idt();
 void init_pic();
 void timer_trap();
 void kb_trap();
+
+int tick = 0;
 
 #pragma pack(push, 1)
 typedef struct {

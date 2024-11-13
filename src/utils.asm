@@ -1,4 +1,5 @@
 %include "src/traps.asm"
+%include "src/testdefaulthandler.asm"
 
 [GLOBAL __loop]
 [GLOBAL __sti]

@@ -3,13 +3,12 @@
 #include "printer.h"
 #include "externs.h"
 
-__inline__
 void panic_handler(int vector) {
   kpanic(vector, "%d");
 }
 
-void kpanic(int vector, char *msg, ...) {
+void kpanic(char *msg, ...) {
   init_printer();
-  printf(msg, vector);
+  printf(msg);
   __loop();
 }

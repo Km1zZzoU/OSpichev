@@ -31,16 +31,17 @@ typedef struct {
 } cntxt;
 
 void timer_trap () {
-  kpanic(0x42, "timer_trap");
+  printf("%h ", tick++);
   return;
 }
 
 void kb_trap () {
+  __loop();
   kpanic(0x42, "kb_trap");
   return;
 }
 
-void __trap_handler(cntxt* cntxt) {
+void __trap_handler(const cntxt *cntxt) {
   switch (cntxt->vector) {
   case 0x20:
     timer_trap();
@@ -49,18 +50,18 @@ void __trap_handler(cntxt* cntxt) {
     kb_trap();
     break;
   default:
-    kpanic(cntxt->vector, "Kernel panic: unhadled interrupt %h. Context:\n"
-                          "EAX = %h ECX = %h EDX = %h EBX = %h\n"
-                          "ESP = %h EBP = %h ESI = %h EDI = %h\n"
-                          "DS = %h ES = %h FS = %h GS = %h\n"
-                          "CS = %h SS = %h EIP = %h\n"
-                          "EFLAGS = %h error code = %h",\
-    cntxt->vector,\
-    cntxt->eax, cntxt->ecx, cntxt->edx, cntxt->ebx,\
-    cntxt->esp, cntxt->ebp, cntxt->esi, cntxt->edi,\
-    cntxt->ds, cntxt->es, cntxt->fs, cntxt->gs,\
-    cntxt->cs, cntxt->ss, cntxt->eip,\
-    cntxt->e_flags, cntxt->e_code);
+    kpanic("Kernel panic: unhadled interrupt %h. Context:\n"
+      "EAX = %h ECX = %h EDX = %h EBX = %h\n"
+      "ESP = %h EBP = %h ESI = %h EDI = %h\n"
+      "DS = %h ES = %h FS = %h GS = %h\n"
+      "CS = %h SS = %h EIP = %h\n"
+      "EFLAGS = %h error code = %h",
+      cntxt->vector,
+      cntxt->eax, cntxt->ecx, cntxt->edx, cntxt->ebx,
+      cntxt->esp, cntxt->ebp, cntxt->esi, cntxt->edi,
+      cntxt->ds, cntxt->es, cntxt->fs, cntxt->gs,
+      cntxt->cs, cntxt->ss, cntxt->eip,
+      cntxt->e_flags, cntxt->e_code);
     break;
   }
 }
@@ -91,8 +92,7 @@ gdst* init_idtable() {
     byte* handler = traps[vector];
     u16 low = (u16) handler;
     u16 seg_sel = 8;
-    u16 flags = 0b1000111000000000;
-    flags     = 0b1000111100000000;
+    u16 flags = vector <= 0x30 ? 0b1000111100000000 : 0b1000111000000000;
     u16 high = (u32) handler >> 16;
 
     idt[vector].segment_selector = seg_sel;

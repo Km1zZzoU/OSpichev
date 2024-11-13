@@ -59,7 +59,9 @@ collect_context:
     push gs
     pusha
 
+    push esp
     call __trap_handler
+    pop esp
 
     mov dx, 0x20
     mov al, 0x20
