@@ -2,11 +2,31 @@
 typedef unsigned char byte;
 typedef unsigned short u16;
 typedef unsigned int u32;
+typedef unsigned long long u64;
+typedef const unsigned int colorType;
 
-#define start_ptr 0xb8000
-#define size_x (80)
-#define size_y (25)
-#define getptr(x,y,t) *((t*) (start_ptr + 2 * ((y) * size_x + (x))))
+#define start_ptr 0xfd000000
+#define size_x (16)
+#define size_y (24)
+#define getptr(x,y, offset) *(u32*) (0xfd000000 + 3 * (x * 16 + w * (y * 24) + offset))
+#define bgh 0x1d2021
+#define bg0 0x282828
+#define bg3 0x665c54
+#define bg4 0x7c6f64
+#define fg 0xebdbb2
+#define red1 0xcc241d
+#define red0 0xfb4934
+#define green0 0x98971a
+#define yellow0 0xd79921
+#define orange0 0xfe8019
+#define blue1 0x458588
+
+#define w 1600
+#define h 1200
+
+#define size_w (w / size_x - 1)
+#define size_h (h / size_y - 1)
+
 #define IDT_SIZE 256
 
 #define __FUNC_GEN(x) extern void __trap_##x();

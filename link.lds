@@ -2,7 +2,7 @@ ENTRY(__start__)
 OUTPUT_FORMAT(binary)
 
 SECTIONS {
-    . = 0x14200;
+    . = 0x14400;
 
     .text : {
         *(.text)

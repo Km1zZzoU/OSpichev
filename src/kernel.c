@@ -15,14 +15,13 @@
 
 int kmain() {
   init_printer();
+  color_printf(yellow0, "printer init...\n\n");
   load_idt();
   init_pic();
+  color_printf(red0, "set IF...\n\n");
   __sti();
-  printf("start_loop:\nfor (int i = 1;; ++i) {\n  if (!i)\n    printf(\"int i is overflow\\n\");\n}\n");
-  for (int i = 1;; ++i) {
-    if (!i)
-      printf("\nint i is overflow");
-  }
-
+  color_printf(red1, "setup complite! Welcome to the OSpichev!\n\n");
+  //test_default_handler();
+  __loop();
 }
 

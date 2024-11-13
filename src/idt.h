@@ -1,8 +1,9 @@
 #pragma once
 #include "externs.h"
 #include "kernel.h"
-#include "typedef.h"
 #include "keybord.h"
+#include "panic.h"
+#include "typedef.h"
 
 typedef struct {
   u32 edi;
@@ -32,7 +33,7 @@ typedef struct {
 } cntxt;
 
 void timer_trap () {
-  // printf("%h ", tick++);
+  //color_printf(red0, "%h ", tick++);
   return;
 }
 
@@ -50,7 +51,7 @@ void __trap_handler(const cntxt *cntxt) {
     break;
   default:
     init_printer();
-    printf("\nKernel panic: unhadled interrupt %h. Context:\n"
+    color_printf(red1, "\nKernel panic: unhadled interrupt %h. Context:\n"
       "ESP = %h\n"
       "EAX = %h\nECX = %h\nEDX = %h\n"
       "EBX = %h\nEBP = %h\nESI = %h\n"
@@ -72,26 +73,31 @@ void __trap_handler(const cntxt *cntxt) {
 }
 
 void load_idt() {
+  color_printf(orange0, "start load_idt...\n");
   gdst* idt = init_idtable();
 
   didt didt = {
     .size = (u16) (sizeof(gdst) * IDT_SIZE - 1),
     .ptr = (u32) idt,
     };
-
+  color_printf(orange0, "  call lidt...\n");
   __load_idt(&didt);
+  color_printf(orange0, "idt load...\n\n");
 }
 
 FUNC_GEN_ALL()
 __FUNC_GEN_ALL()
 
 gdst* init_idtable() {
+  color_printf(orange0, "  start init table...\n");
   void* traps[256];
 
   FUNC_ASSIGN_ALL
   __FUNC_ASSIGN_ALL()
 
+
   gdst* idt = make(IDT_SIZE * sizeof(gdst));
+  color_printf(orange0, "    alloc memory for idt...\n");
 
   for (int vector = 0; vector < IDT_SIZE; vector++) {
     byte* handler = traps[vector];
@@ -105,6 +111,6 @@ gdst* init_idtable() {
     idt[vector].flags = flags;
     idt[vector].high_bits = high;
   }
-
+  color_printf(orange0, "    complete idt...\n");
   return idt;
 }

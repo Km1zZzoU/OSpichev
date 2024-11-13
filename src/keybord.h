@@ -38,19 +38,19 @@ void click_handler() {
     case 0x0E:
       if (curx == 0 && cury > 0) {
         cury--;
-        curx = size_x - 1;
+        curx = size_w - 1;
       } else {
         curx--;
       }
-      getptr(curx, cury, char) = 0;
+      vga_draw(font[0xdb], curx, cury, bg0);
       break;
 
     case 0xF:
-      if (curx == size_x - 2) {
-        vga_putc(' ');
+      if (curx == size_w - 2) {
+        vga_putc(fg, ' ');
       }
-      vga_putc(' ');
-      vga_putc(' ');
+      vga_putc(fg, ' ');
+      vga_putc(fg, ' ');
       break;
 
     case 0x38: //alt
@@ -62,9 +62,9 @@ void click_handler() {
       break;
     default:
       if (shift_togle) {
-        vga_putc(shift_scancode[symbol]);
+        vga_putc(fg, shift_scancode[symbol]);
       } else {
-        vga_putc(scancode[symbol]);
+        vga_putc(fg, scancode[symbol]);
       }
       break;
     }

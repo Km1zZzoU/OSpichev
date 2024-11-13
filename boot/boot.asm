@@ -87,8 +87,6 @@ _start:
     mov ax, 0x07c0      ; Загружаем значение 0x07C0 в регистр AX.
     mov ds, ax          ; Устанавливаем сегмент данных (DS) на 0x07C0 (начало загрузочного сектора).
 
-    sti                 ; Включаем прерывания после инициализации сегментов.
-
     xor si, si        ; итератор по цилиндрам
     mov di, START_SEG ;
 .start_load:
@@ -108,14 +106,25 @@ _start:
     mov al, 0x20     ; Устанавливаем высокие биты для скрытия курсора
     out dx, al       ; Записываем значение, отключающее мигание
 
-    cli  ;для входа в rmode
+    mov ax, 0x1420
+    mov bx, 0x0800
+    mov cx, 0x0200
+    call copy
+
+    mov cx, 0x8000
+    call cx
     lgdt [gdt_descriptor]
+    ;jmp $
 
     ; https://sasm.narod.ru/docs/pm/pm_in/chap_10.htm
     mov  eax, cr0
     or   al,  1
     mov  cr0, eax
 
+
+    jmp CODE_SEG:tramplin + 0x7c00
+[bits 32]
+tramplin:
     mov esp, START_PTR ; настраиваем стек
     mov bx,  DATA_SEG
     mov ss,  bx
@@ -123,12 +132,11 @@ _start:
     mov ds,  bx
     mov fs,  bx
     mov gs,  bx
-    jmp CODE_SEG:tramplin + 0x7c00
-[bits 32]
-tramplin:
-    jmp CODE_SEG:0x14200
+    jmp CODE_SEG:0x14400
+;    jmp $
     ; Welcome to the C!
 [bits 16]
+
 
 all_bad:
     add ax, 0xe00 ;отловить ошибку от int_0x13(0x2)
