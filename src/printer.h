@@ -35,6 +35,8 @@ void printf(char* fmt, ...) {
         }
         break;
       case '\n':
+        if (curx == 0)
+          vga_putc(' ');
         for (; curx > 0; vga_putc(' '));
         break;
       default:
@@ -137,7 +139,7 @@ void vga_clear() {
   for (int x = 0; x < size_x; x++) {
     for (int y = 0; y < size_y; y++) {
       getptr(x, y, short) = get_colar(x+y);
-      getptr(x, y, short) = 0x0200;
+      getptr(x, y, short) = 0x0f00;
     }
   }
 }

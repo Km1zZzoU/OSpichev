@@ -2,6 +2,7 @@
 #include "externs.h"
 #include "kernel.h"
 #include "typedef.h"
+#include "keybord.h"
 
 typedef struct {
   u32 edi;
@@ -36,9 +37,7 @@ void timer_trap () {
 }
 
 void kb_trap () {
-  kpanic("kb_trap %d", 42);
-  __loop();
-  return;
+  click_handler();
 }
 
 void __trap_handler(const cntxt *cntxt) {
