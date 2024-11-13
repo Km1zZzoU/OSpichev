@@ -17,7 +17,7 @@ all: clean run
 
 $(BOOT_IMG): $(BOOT_BIN) $(VESA_BIN) $(KERNEL_BIN)
 	dd if=/dev/zero of=$@ bs=1024 count=1440
-	
+
 	dd if=$(BOOT_BIN) of=$@ $(DD_FLAGS)
 
 	dd if=$(VESA_BIN) of=$@ $(DD_FLAGS) seek=1
@@ -47,3 +47,4 @@ clean:
 	rm -f $(BOOT_BIN) $(KERNEL_BIN) *.o $(BOOT_IMG) *.bin
 
 .PHONY: all clean run
+	

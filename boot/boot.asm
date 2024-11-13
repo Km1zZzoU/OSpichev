@@ -141,6 +141,7 @@ tramplin:
 all_bad:
     add ax, 0xe00 ;отловить ошибку от int_0x13(0x2)
     int 0x10
+    jmp $
 
 
 gdt_start:
@@ -149,7 +150,7 @@ gdt_code:
 ;             GDXU&lim2
       ;адрес 3;       ;acces  ;       адрес 1&2       ;limit 1;
     dq 0000000001001111100110100000000000000000000000001111111111111111b
-    ;                      ^ diff with code
+    ;                      ^ diff with data
     ; 1)00000000     2)0100 1111
     ; base3 1 byte     GDXU limit2
     ; 3)10011010      4)00000000
