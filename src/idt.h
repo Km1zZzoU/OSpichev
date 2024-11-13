@@ -31,13 +31,13 @@ typedef struct {
 } cntxt;
 
 void timer_trap () {
-  printf("%h ", tick++);
+  // printf("%h ", tick++);
   return;
 }
 
 void kb_trap () {
+  kpanic("kb_trap %d", 42);
   __loop();
-  kpanic(0x42, "kb_trap");
   return;
 }
 
@@ -50,18 +50,24 @@ void __trap_handler(const cntxt *cntxt) {
     kb_trap();
     break;
   default:
-    kpanic("Kernel panic: unhadled interrupt %h. Context:\n"
-      "EAX = %h ECX = %h EDX = %h EBX = %h\n"
-      "ESP = %h EBP = %h ESI = %h EDI = %h\n"
+    init_printer();
+    printf("\nKernel panic: unhadled interrupt %h. Context:\n"
+      "ESP = %h\n"
+      "EAX = %h\nECX = %h\nEDX = %h\n"
+      "EBX = %h\nEBP = %h\nESI = %h\n"
+      "EDI = %h\n"
       "DS = %h ES = %h FS = %h GS = %h\n"
       "CS = %h SS = %h EIP = %h\n"
-      "EFLAGS = %h error code = %h",
+      "EFLAGS = %h error code = %h\n",
       cntxt->vector,
-      cntxt->eax, cntxt->ecx, cntxt->edx, cntxt->ebx,
-      cntxt->esp, cntxt->ebp, cntxt->esi, cntxt->edi,
+      cntxt->esp,
+      cntxt->eax, cntxt->ecx, cntxt->edx,
+      cntxt->ebx, cntxt->ebp, cntxt->esi,
+      cntxt->edi,
       cntxt->ds, cntxt->es, cntxt->fs, cntxt->gs,
       cntxt->cs, cntxt->ss, cntxt->eip,
       cntxt->e_flags, cntxt->e_code);
+    __loop();
     break;
   }
 }

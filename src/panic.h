@@ -3,12 +3,12 @@
 #include "printer.h"
 #include "externs.h"
 
-void panic_handler(int vector) {
-  kpanic(vector, "%d");
+void kpanic_handler(int vector) {
+  kpanic("unhandled interupt without context: %d\n", vector);
 }
 
-void kpanic(char *msg, ...) {
+void kpanic(char *msg, int vector) {
   init_printer();
-  printf(msg);
+  printf(msg, vector);
   __loop();
 }

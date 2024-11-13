@@ -4,12 +4,17 @@
 [GLOBAL __loop]
 [GLOBAL __sti]
 [GLOBAL __inb]
+[GLOBAL __cli]
 [GLOBAL __outb]
 [GLOBAL __load_idt]
 section .text
 
 __loop:
     jmp $
+
+__cli:
+    cli
+    ret
 
 __sti:
     sti

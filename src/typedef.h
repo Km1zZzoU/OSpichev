@@ -25,7 +25,7 @@ typedef unsigned int u32;
 #define __FUNC_ASSIGN_32(b5) __FUNC_ASSIGN_16(b5##0) __FUNC_ASSIGN_16(b5##1)
 #define __FUNC_ASSIGN_ALL() __FUNC_ASSIGN_32(0) __FUNC_ASSIGN(100000) __FUNC_ASSIGN(100001)
 
-#define FUNC_GEN(x) static void trap_##x() { kpanic("unhandled error without context: 0x%d\n", 0b##x); } __FUNC_GEN(0b##x)
+#define FUNC_GEN(x) static void trap_##x() { kpanic_handler(0b##x); } __FUNC_GEN(0b##x)
 #define FUNC_GEN_2(b1) FUNC_GEN(b1##0) FUNC_GEN(b1##1)
 #define FUNC_GEN_4(b2) FUNC_GEN_2(b2##0) FUNC_GEN_2(b2##1)
 #define FUNC_GEN_8(b3) FUNC_GEN_4(b3##0) FUNC_GEN_4(b3##1)

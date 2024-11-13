@@ -16,7 +16,7 @@ void shift_down();
 void init_printer();
 void printf(char* fmt, ...);
 short get_colar(int n);
-void kpanic(char *msg, ...);
+void kpanic(char *msg, int vector);
 void* make(u32 size);
 void load_idt();
 void init_pic();

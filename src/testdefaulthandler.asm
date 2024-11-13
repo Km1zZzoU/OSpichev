@@ -4,7 +4,8 @@ test_default_handler:
     mov ecx, 2
     mov edx, 3
     mov ebx, 4
-    mov esi, 5
-    mov edi, 6
+    mov edi, 5
+    mov esi, 6
     mov ebp, 7
     int 8
+    ret
