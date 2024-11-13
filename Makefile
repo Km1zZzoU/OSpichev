@@ -29,7 +29,7 @@ $(KERNEL_BIN): $(SRC_DIR)/kernel.c utils
 	ld $(LD_FLAGS_KERNEL) *.o -o $@
 
 utils:
-	nasm $(NASM_FLAGS) $(wildcard $(SRC_DIR)/*.asm) -o utils.o
+	nasm $(NASM_FLAGS) $(SRC_DIR)/utils.asm -o utils.o
 
 run: $(BOOT_IMG)
 	$(QEMU) -fda $(BOOT_IMG) -monitor stdio
