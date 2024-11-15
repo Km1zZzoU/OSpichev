@@ -2,13 +2,68 @@
 #include "typedef.h"
 #include "kernel.h"
 
+#define start_ptr 0xfd000000
+#define size_x (16)
+#define size_y (24)
+#define getptr(x,y, offset) *(u32*) (0xfd000000 + 3 * (x * 16 + w * (y * 24) + offset))
+u16 font[256][24];
+#define w 1600
+#define h 1200
+int curx = 0, cury = 0;
+#define size_w (w / size_x - 1)
+#define size_h (h / size_y - 1)
+
+// Background colors
+#define bgh          0x1d2021
+#define bg0          0x282828
+#define bg1          0x3c3836
+#define bg2          0x504945
+#define bg3          0x665c54
+#define bg4          0x7c6f64
+
+// Foreground colors
+#define fg           0xebdbb2
+#define fg1          0xebdbb2
+#define fg2          0xd5c4a1
+#define fg3          0xbdae93
+#define fg4          0xa89984
+
+// Shades of Gray
+#define gray0        0x928374
+
+// Primary colors
+#define red1         0xcc241d
+#define red0         0xfb4934
+#define green1       0x98971a
+#define green0       0xb8bb26
+#define yellow1      0xd79921
+#define yellow0      0xfabd2f
+#define blue1        0x458588
+#define blue0        0x83a598
+#define purple1      0xb16286
+#define purple0      0xd3869b
+#define aqua1        0x689d6a
+#define aqua0        0x8ec07c
+#define orange1      0xd65d0e
+#define orange0      0xfe8019
+
+// Bright variants
+#define bright_red   0xfb4934
+#define bright_green 0xb8bb26
+#define bright_yellow 0xfabd2f
+#define bright_blue  0x83a598
+#define bright_purple 0xd3869b
+#define bright_aqua  0x8ec07c
+#define bright_orange 0xfe8019
+
+
 void init_printer() {
   vga_clear();
   for (int x = 4; x < w - 4; x++) {
     for (int y = 4; y < h - 4; ++y) {
-      // int r = ((w/2-x | h/2-y) + ((w/2-x)*(w/2-x) + (h/2-y)*(h/2-y) >> (x & 11))) % 0x100 & 0xff;
-      // int g = ((w/2-x ^ h/2-y) + ((w/2-x)*(w/2-x) + (h/2-y)*(h/2-y) >> (y & 9))) % 0x100 & 0xff;
-      // int b = ((w/2-x & h/2-y) + ((w/2-x)*(w/2-x) + (h/2-y)*(h/2-y) >> (x - y & 11))) % 0x100 & 0xff;
+      // int r = (w/2-x | h/2-y) & 0xff;
+      // int g = (w/2-x | h/2-y) & 0xff;
+      // int b = (w/2-x | h/2-y) & 0xff;
       // getptr(0, 0, y * w + x) = r << 16 | g << 8 | b;
       getptr(0, 0, y * w + x) = bg0;
     }

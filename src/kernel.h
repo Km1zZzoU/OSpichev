@@ -1,11 +1,9 @@
 #pragma once
-#include "typedef.h"
 int kmain();
-
 void __start__() {
   kmain();
 }
-
+#include "typedef.h"
 
 void vga_clear();
 void vga_puts(colorType color, char* c);
@@ -27,22 +25,4 @@ void init_pic();
 void timer_trap();
 void kb_trap();
 void click_handler();
-int curx = 0, cury = 0;
-u16 font[256][24];
 int tick = 0;
-
-#pragma pack(push, 1)
-typedef struct {
-  u16 low_bits;
-  u16 segment_selector;
-  u16 flags;
-  u16 high_bits;
-} gdst;
-
-gdst* init_idtable();
-
-typedef struct {
-  u16 size;
-  u32 ptr;
-} didt;
-#pragma pack(push)

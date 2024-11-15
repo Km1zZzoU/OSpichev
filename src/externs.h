@@ -8,4 +8,5 @@ extern void __outb(u16 port, byte data);
 extern byte __inb(u16 port);
 extern void __timer_trap();
 extern void __kb_trap();
+extern void __setup_paging(int pd);
 extern void test_default_handler();

@@ -6,6 +6,7 @@
 #include "typedef.h"
 #include "printer.h"
 #include "pic.h"
+#include "paging.h"
 
 // ──────▄▀▄─────▄▀▄
 // ─────▄█░░▀▀▀▀▀░░█▄
@@ -16,6 +17,7 @@
 int kmain() {
   init_printer();
   color_printf(yellow0, "printer init...\n\n");
+  setup_paging();
   load_idt();
   init_pic();
   color_printf(red0, "set IF...\n\n");
