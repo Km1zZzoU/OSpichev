@@ -19,8 +19,8 @@ int kmain() {
   load_idt();
   init_pic();
   color_printf(red0, "set IF...\n\n");
+  color_printf(red1, "setup complete! Welcome to the OSpichev!");
   __sti();
-  color_printf(red1, "setup complite! Welcome to the OSpichev!\n\n");
-  //test_default_handler();
+  // test_default_handler();
   __loop();
 }

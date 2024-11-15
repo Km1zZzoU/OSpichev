@@ -44,10 +44,10 @@ void kb_trap () {
 void __trap_handler(const cntxt *cntxt) {
   switch (cntxt->vector) {
   case 0x20:
-    timer_trap();
+    timer_trap();//eoi
     break;
   case 0x21:
-    kb_trap();
+    kb_trap();//eoi
     break;
   default:
     init_printer();
@@ -69,6 +69,12 @@ void __trap_handler(const cntxt *cntxt) {
       cntxt->e_flags, cntxt->e_code);
     __loop();
     break;
+  }
+  if (cntxt->vector >= 0x20) {
+    __sti();
+    if (cntxt->vector < 0x30) {
+      __eoi();
+    }
   }
 }
 
@@ -103,7 +109,8 @@ gdst* init_idtable() {
     byte* handler = traps[vector];
     u16 low = (u16) handler;
     u16 seg_sel = 8;
-    u16 flags = vector <= 0x30 ? 0b1000111100000000 : 0b1000111000000000;
+    u16 flags = vector < 0x20 ? 0b1000111100000000 : 0b1000111000000000;
+    // flags = 0b1000111100000000;
     u16 high = (u32) handler >> 16;
 
     idt[vector].segment_selector = seg_sel;

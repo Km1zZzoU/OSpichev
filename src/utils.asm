@@ -7,6 +7,7 @@
 [GLOBAL __cli]
 [GLOBAL __outb]
 [GLOBAL __load_idt]
+[GLOBAL __eoi]
 section .text
 
 __loop:
@@ -37,4 +38,10 @@ __outb:
 __load_idt:
     mov eax, [esp + 4]
     lidt [eax]
+    ret
+
+__eoi:
+    mov dx, 0x20
+    mov al, 0x20
+    out dx, al
     ret
