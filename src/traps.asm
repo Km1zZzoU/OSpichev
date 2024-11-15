@@ -59,13 +59,13 @@ collect_context:
     push gs
     pusha
 
+    mov eax, 0x10
+    mov ds, ax
+    mov es, ax
+
     push esp
     call __trap_handler
     pop esp
-
-    mov dx, 0x20
-    mov al, 0x20
-    out dx, al
 
     popa
     pop gs

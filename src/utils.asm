@@ -51,4 +51,10 @@ __setup_paging:
     mov eax, cr0
     or eax, 0x80000001
     mov cr0, eax
+
+[GLOBAL __eoi]
+__eoi:
+    mov dx, 0x20
+    mov al, 0x20
+    out dx, al
     ret
