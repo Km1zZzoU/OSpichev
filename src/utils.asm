@@ -49,8 +49,10 @@ __setup_paging:
     mov cr3, eax
 
     mov eax, cr0
-    or eax, 0x80000001
+    or eax, 0x80000020
+    ;jmp $
     mov cr0, eax
+    ret
 
 [GLOBAL __eoi]
 __eoi:

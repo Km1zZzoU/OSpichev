@@ -38,10 +38,10 @@ utils:
 	nasm $(NASM_FLAGS) $(SRC_DIR)/utils.asm -o utils.o
 
 run: $(BOOT_IMG)
-	$(QEMU) -fda $(BOOT_IMG) -monitor stdio
+	$(QEMU) -fda $(BOOT_IMG) -monitor stdio #-d int,cpu,mmu -D debug.log
 
 gdb: $(BOOT_IMG)
-	$(QEMU) -fda $(BOOT_IMG) -monitor stdio -s -S
+	$(QEMU) -fda $(BOOT_IMG) -monitor stdio -s -S #-d int,cpu,mmu -D debug.log
 
 clean:
 	rm -f $(BOOT_BIN) $(KERNEL_BIN) *.o $(BOOT_IMG) *.bin

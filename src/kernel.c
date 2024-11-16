@@ -17,12 +17,38 @@
 int kmain() {
   init_printer();
   color_printf(yellow0, "printer init...\n\n");
+  // __loop();
   setup_paging();
+  __loop();
   load_idt();
   init_pic();
   color_printf(red0, "set IF...\n\n");
-  color_printf(red1, "setup complete! Welcome to the OSpichev!");
   __sti();
+  color_printf(red1, "setup complete! Welcome to the OSpichev!");
   // test_default_handler();
-  __loop();
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
