@@ -16,4 +16,4 @@ BraceWrapping:
   SplitEmptyNamespace: false
 BinPackParameters: false
 BinPackArguments: false
-AllowShortFunctionsOnASingleLine: None  # Не разрешать однострочные функции
+AllowShortFunctionsOnASingleLine: None
