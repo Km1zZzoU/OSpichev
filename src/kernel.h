@@ -1,6 +1,6 @@
 #pragma once
-int kmain();
-void __start__() {
+void kmain();
+ void __start__() {
   kmain();
 }
 #include "typedef.h"
@@ -15,6 +15,7 @@ void printf(char* msg);
 void shift_down();
 void init_printer();
 void color_printf(colorType color, char* fmt, ...);
+void __debug_print_esp(u32 esp);
 static void panic_handler(int vector);
 void kpanic(char* msg, int vector);
 void* make(u32 size);
@@ -25,4 +26,10 @@ void init_pic();
 void timer_trap();
 void kb_trap();
 void click_handler();
-int tick = 0;
+byte system_tick = 0;
+byte system_sec = 0;
+byte system_min = 0;
+byte system_hour = 0;
+
+Task* Main;
+Task* current_task;

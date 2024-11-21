@@ -3,7 +3,9 @@
 #include "kernel.h"
 #include "keybord.h"
 #include "panic.h"
+#include "syscalls.h"
 #include "typedef.h"
+#include "taskmanager.h"
 
 #define IDT_SIZE 256
 
@@ -13,7 +15,7 @@
 #define __FUNC_GEN_8(b3) __FUNC_GEN_4(b3##0) __FUNC_GEN_4(b3##1)
 #define __FUNC_GEN_16(b4) __FUNC_GEN_8(b4##0) __FUNC_GEN_8(b4##1)
 #define __FUNC_GEN_32(b5) __FUNC_GEN_16(b5##0) __FUNC_GEN_16(b5##1)
-#define __FUNC_GEN_ALL() __FUNC_GEN_32(0) __FUNC_GEN(100000) __FUNC_GEN(100001)
+#define __FUNC_GEN_ALL() __FUNC_GEN_32(0) __FUNC_GEN(100000) __FUNC_GEN(100001) __FUNC_GEN(1000010)
 
 #define __FUNC_ASSIGN(x) traps[0b##x] = __trap_##x;
 #define __FUNC_ASSIGN_2(b1) __FUNC_ASSIGN(b1##0) __FUNC_ASSIGN(b1##1)
@@ -21,7 +23,7 @@
 #define __FUNC_ASSIGN_8(b3) __FUNC_ASSIGN_4(b3##0) __FUNC_ASSIGN_4(b3##1)
 #define __FUNC_ASSIGN_16(b4) __FUNC_ASSIGN_8(b4##0) __FUNC_ASSIGN_8(b4##1)
 #define __FUNC_ASSIGN_32(b5) __FUNC_ASSIGN_16(b5##0) __FUNC_ASSIGN_16(b5##1)
-#define __FUNC_ASSIGN_ALL() __FUNC_ASSIGN_32(0) __FUNC_ASSIGN(100000) __FUNC_ASSIGN(100001)
+#define __FUNC_ASSIGN_ALL() __FUNC_ASSIGN_32(0) __FUNC_ASSIGN(100000) __FUNC_ASSIGN(100001) __FUNC_ASSIGN(1000010)
 
 #define FUNC_GEN(x) static void trap_##x() { kpanic_handler(0b##x); } __FUNC_GEN(0b##x)
 #define FUNC_GEN_2(b1) FUNC_GEN(b1##0) FUNC_GEN(b1##1)
@@ -43,33 +45,6 @@
 #define FUNC_ASSIGN_128(b7) FUNC_ASSIGN_64(b7##0) FUNC_ASSIGN_64(b7##1)
 #define FUNC_ASSIGN_ALL FUNC_ASSIGN_128(0) FUNC_ASSIGN_128(1)
 
-typedef struct {
-  u32 edi;
-  u32 esi;
-  u32 ebp;
-  u32 esp;
-  u32 ebx;
-  u32 edx;
-  u32 ecx;
-  u32 eax;
-  u16 gs;
-  u16 p1;
-  u16 fs;
-  u16 p2;
-  u16 es;
-  u16 p3;
-  u16 ds;
-  u16 p4;
-  u32 vector;
-  u32 e_code;
-  u32 eip;
-  u16 cs;
-  u16 p5;
-  u32 e_flags;
-  u32 start_esp;
-  u16 ss;
-} cntxt;
-
 #pragma pack(push, 1)
 typedef struct {
   u16 low_bits;
@@ -87,24 +62,74 @@ typedef struct {
 #pragma pack(push)
 
 void timer_trap () {
-  //color_printf(red0, "%h ", tick++);
-  return;
+  if (system_tick++ == 91) {
+    system_tick = 1;
+    system_sec += 5;
+    if (system_sec == 60) {
+      system_sec = 0;
+      system_min++;
+    }
+    if (system_min == 60) {
+      system_min = 0;
+      system_hour++;
+    }
+  }
+  int oldx = curx;
+  int oldy = cury;
+  curx = 85;
+  cury = 0;
+  for (int i = curx; i < 99; i++)
+    vga_draw(font[0xdb], i, 0, bg0);
+  vga_puts(red1, "time:");
+  vga_putn(red0, system_hour, 10);
+  vga_putc(red1, '|');
+  vga_putn(red0, system_min, 10);
+  vga_putc(red1, '|');
+  vga_putn(red0, system_sec, 10);
+  vga_putc(red1, '|');
+  vga_putn(yellow1, system_tick, 10);
+  curx = oldx;
+  cury = oldy;
 }
 
 void kb_trap () {
   click_handler();
 }
 
-void __trap_handler(const cntxt *cntxt) {
+int count_switch = 3;
+
+void __trap_handler(cntxt *cntxt) {
   switch (cntxt->vector) {
   case 0x20:
-    timer_trap();//eoi
+    if (!system_tick) {
+      init_task_manager(*cntxt);
+      // __loop();
+    } else if (Main->next && system_tick & 0x1f) {
+      count_switch--;
+      // timer_trap();
+      // switch_task();
+      // __loop();
+
+      color_printf(yellow0, "switch:\n");
+      color_printf(yellow0, "eip: (%h) %h->%h\n", current_task->cntxt.eip, cntxt->eip, current_task->next->cntxt.eip);
+      color_printf(yellow0, "esp: (%h) %h->%h\n", current_task->cntxt.esp, cntxt->esp, current_task->next->cntxt.esp);
+      current_task->cntxt = *cntxt;
+      current_task = current_task->next;
+      *cntxt = current_task->cntxt;
+      if (!count_switch)
+        __loop();
+    }
+    timer_trap();
     break;
   case 0x21:
-    kb_trap();//eoi
+    kb_trap();
+    break;
+  case 0x42:
+    syscall_print((char *)cntxt->eax);
     break;
   default:
-    init_printer();
+    // init_printer();
+    __cli();
     color_printf(red1, "\nKernel panic: unhadled interrupt %h. Context:\n"
       "ESP = %h\n"
       "EAX = %h\nECX = %h\nEDX = %h\n"
@@ -124,9 +149,9 @@ void __trap_handler(const cntxt *cntxt) {
     __loop();
     break;
   }
-  if (cntxt->vector >= 0x20) {
+  if (cntxt->vector >= 0x20 || cntxt->vector == 228) {
     __sti();
-    if (cntxt->vector < 0x30) {
+    if (cntxt->vector < 0x30 || cntxt->vector == 228) {
       __eoi();
     }
   }

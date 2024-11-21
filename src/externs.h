@@ -11,3 +11,6 @@ extern void __kb_trap();
 extern void __setup_paging(int pd);
 extern void __eoi();
 extern void test_default_handler();
+extern void foo();
+extern void bar();
+extern void biz();

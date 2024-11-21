@@ -44,7 +44,7 @@ gdb: $(BOOT_IMG)
 	$(QEMU) -fda $(BOOT_IMG) -monitor stdio -s -S #-d int,cpu,mmu -D debug.log
 
 clean:
-	rm -f $(BOOT_BIN) $(KERNEL_BIN) *.o $(BOOT_IMG) *.bin
+	rm -f $(BOOT_BIN) $(KERNEL_BIN) *.o $(BOOT_IMG) vesa.bin boot.bin kernel.bin
 
 .PHONY: all clean run
 	

@@ -1,5 +1,6 @@
 %include "src/traps.asm"
 %include "src/testdefaulthandler.asm"
+%include "src/test.asm"
 
 section .text
 
@@ -41,22 +42,46 @@ __load_idt:
 
 [GLOBAL __setup_paging]
 __setup_paging:
-    ; mov eax, cr4
-    ; or eax, 0x00000010
-    ; mov cr4, eax
 
+    pop ebx
     pop eax
+    push ebx
     mov cr3, eax
 
     mov eax, cr0
-    or eax, 0x80000020
-    ;jmp $
+    or eax, 0x80000001
     mov cr0, eax
     ret
+
 
 [GLOBAL __eoi]
 __eoi:
     mov dx, 0x20
     mov al, 0x20
     out dx, al
+    ret
+
+[GLOBAL foo]
+hello:
+    dq "Hello, world!"
+foo:
+    mov eax, hello
+    int 0x42
+    ret
+
+[GLOBAL bar]
+name:
+    dq "My name is Ospichev!"
+bar:
+    mov eax, name
+    int 0x42
+    ret
+
+
+[GLOBAL biz]
+bz:
+    dq "bzzzz "
+biz:
+    mov eax, bz
+    int 0x42
     ret
