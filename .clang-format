@@ -1,0 +1,19 @@
+BasedOnStyle: LLVM
+IndentWidth: 2
+UseTab: Never
+BraceWrapping:
+  AfterClass: false
+  AfterControlStatement: false
+  AfterFunction: false
+  AfterEnum: false
+  AfterNamespace: false
+  AfterStruct: false
+  AfterUnion: false
+  BeforeCatch: false
+  BeforeElse: false
+  IndentBraces: false
+  SplitEmptyFunction: false
+  SplitEmptyNamespace: false
+BinPackParameters: false
+BinPackArguments: false
+AllowShortFunctionsOnASingleLine: None  # Не разрешать однострочные функции
