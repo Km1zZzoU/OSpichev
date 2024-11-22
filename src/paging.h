@@ -9,7 +9,7 @@
 void setup_paging() {
   color_printf(purple1, "start setup paging...\n");
   u32 start_addr = PtrPTEs;
-  *(u32*) start_addr = 0b011; //off first table
+  *(u32*) start_addr = 0b0; //off first table
   start_addr += _4B;
   color_printf(purple1, "  off first page...\n");
 

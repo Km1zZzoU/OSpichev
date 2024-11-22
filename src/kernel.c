@@ -26,18 +26,18 @@ void hello() {
   // __asm__ __volatile__ (
   //       "int $0"
   //   );
+  for (byte i = 0;;__cli(), vga_putn(red0, i++, 16), foo(), __sti());
   foo();
-  for (byte i = 0;; vga_putn(red0, i++, 16), foo());
 }
 
 void name() {
+  for (byte i = 0;;__cli(), vga_putn(purple0, i++, 16), bar(), __sti());
   bar();
-  for (byte i = 0;; vga_putn(purple0, i++, 16), bar());
 }
 
 void biiz() {
+  for (byte i = 0;;__cli(), vga_putn(orange0, i++, 16), biz(), __sti());
   biz();
-  for (byte i = 0;; vga_putn(orange0, i++, 16), biz());
 }
 
 void start_multitasking() {
@@ -51,12 +51,16 @@ void kmain() {
   setup_paging();
   load_idt();
   init_pic();
-  color_printf(red0, "set IF...\n\n");
+  color_printf(red0, "set IF...\n");
   start_multitasking();
   // color_printf(red1, "setup complete! Welcome to the OSpichev!\n\n\n\n\n\n");
   go(hello);
+  printf("go hello\n");
   go(name);
-  go(biiz);
+  printf("go name\n");
+  biiz();
+  // go(biiz, "say biiz");
+  // printf("go bizz");
   __loop(); //1a565
 }
 

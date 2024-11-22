@@ -76,10 +76,17 @@ void timer_trap () {
   }
   int oldx = curx;
   int oldy = cury;
-  curx = 85;
+  curx = 0;
   cury = 0;
+  if (Main.next->next->next == NULL) {
+    __cli();
+    __loop();
+  }
   for (int i = curx; i < 99; i++)
     vga_draw(font[0xdb], i, 0, bg0);
+  color_printf(green1, "Main:%h->%h->%h->%h->%h->%h ", Main.cntxt->eip, Main.next->cntxt->eip,
+    Main.next->next->cntxt->eip, Main.next->next->next->cntxt->eip, Main.next->next->next->next->cntxt->eip,
+    Main.next->next->next->next->next->cntxt->eip);
   vga_puts(red1, "time:");
   vga_putn(red0, system_hour, 10);
   vga_putc(red1, '|');
@@ -96,28 +103,25 @@ void kb_trap () {
   click_handler();
 }
 
-int count_switch = 3;
 
-void __trap_handler(cntxt *cntxt) {
+void __trap_handler(cntxt* cntxt) {
+  __cli();
+  color_printf(aqua1, "%h\n", cntxt->eip);
   switch (cntxt->vector) {
   case 0x20:
+    printf("tick\n");
     if (!system_tick) {
-      init_task_manager(*cntxt);
+      init_task_manager(cntxt);
+      // color_printf(aqua0, "%h\n", Main.cntxt);
+      // __cli();
       // __loop();
-    } else if (Main->next && system_tick & 0x1f) {
-      count_switch--;
-      // timer_trap();
-      // switch_task();
-      // __loop();
-
-      color_printf(yellow0, "switch:\n");
-      color_printf(yellow0, "eip: (%h) %h->%h\n", current_task->cntxt.eip, cntxt->eip, current_task->next->cntxt.eip);
-      color_printf(yellow0, "esp: (%h) %h->%h\n", current_task->cntxt.esp, cntxt->esp, current_task->next->cntxt.esp);
-      current_task->cntxt = *cntxt;
-      current_task = current_task->next;
-      *cntxt = current_task->cntxt;
-      if (!count_switch)
-        __loop();
+    } else if (system_tick == 12) {
+      system_tick = 0;
+      // color_printf(aqua0, "%h\n", Main.cntxt);
+      // color_printf(yellow0, "switch:\n");
+      // color_printf(yellow0, "eip: (%h) %h->%h\n", current_task->cntxt->eip, cntxt->eip, current_task->next->cntxt->eip);
+      // color_printf(yellow0, "esp: (%h) %h->%h\n", current_task->cntxt->esp, cntxt->esp, current_task->next->cntxt->esp);
+      switch_task(&cntxt);
     }
     timer_trap();
     break;
@@ -125,7 +129,7 @@ void __trap_handler(cntxt *cntxt) {
     kb_trap();
     break;
   case 0x42:
-    syscall_print((char *)cntxt->eax);
+    syscall_print((char* )cntxt->eax);
     break;
   default:
     // init_printer();
@@ -149,12 +153,10 @@ void __trap_handler(cntxt *cntxt) {
     __loop();
     break;
   }
-  if (cntxt->vector >= 0x20 || cntxt->vector == 228) {
-    __sti();
-    if (cntxt->vector < 0x30 || cntxt->vector == 228) {
-      __eoi();
-    }
+  if (cntxt->vector < 0x30 || cntxt->vector == 228) {
+    __eoi();
   }
+  __sti();
 }
 
 void load_idt() {

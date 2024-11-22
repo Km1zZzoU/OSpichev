@@ -164,10 +164,6 @@ void vga_putc(colorType color, char c) {
   vga_printc(color, c, &curx, &cury);
 }
 
-void __debug_print_esp(const u32 esp) {
-  vga_putn(fg, esp, 16);
-}
-
 void vga_putn(colorType color, int x, int base) {
   if (!x) {
     vga_putc(color, '0');

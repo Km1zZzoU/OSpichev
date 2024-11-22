@@ -74,6 +74,5 @@ collect_context:
     pop es
     pop ds
     add esp, 8
-;    jmp __debug_print_esp
     IRETD
 

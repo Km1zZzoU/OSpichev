@@ -31,5 +31,5 @@ byte system_sec = 0;
 byte system_min = 0;
 byte system_hour = 0;
 
-Task* Main;
+Task Main;
 Task* current_task;

@@ -1,6 +1,5 @@
 %include "src/traps.asm"
 %include "src/testdefaulthandler.asm"
-%include "src/test.asm"
 
 section .text
 
@@ -63,7 +62,7 @@ __eoi:
 
 [GLOBAL foo]
 hello:
-    dq "Hello, world!"
+    dq "Hi"
 foo:
     mov eax, hello
     int 0x42
@@ -71,16 +70,15 @@ foo:
 
 [GLOBAL bar]
 name:
-    dq "My name is Ospichev!"
+    dq "Os"
 bar:
     mov eax, name
     int 0x42
     ret
 
-
 [GLOBAL biz]
 bz:
-    dq "bzzzz "
+    dq "bz"
 biz:
     mov eax, bz
     int 0x42

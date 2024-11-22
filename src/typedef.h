@@ -33,7 +33,7 @@ typedef struct {
 } cntxt;
 
 typedef struct Task {
-  cntxt cntxt;
+  cntxt *cntxt;
   struct Task *next;
 } Task;
 
