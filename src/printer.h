@@ -56,24 +56,6 @@ int curx = 0, cury = 0;
 #define bright_aqua  0x8ec07c
 #define bright_orange 0xfe8019
 
-void gdb_forks() {
-  if (!dbg)
-    return;
-  color_printf(yellow0, "dbg ptr task: \n");
-  color_printf(yellow0, "%h->", current_task);
-  color_printf(yellow0, "%h->", current_task->next);
-  color_printf(yellow0, "%h->", current_task->next->next);
-  color_printf(yellow0, "%h->...", current_task->next->next->next);
-  color_printf(bright_aqua, "ptr cntxt: %h, esp: %h, eip: %h...\n",
-    current_task->cntxt, current_task->cntxt->esp, current_task->cntxt->eip);
-}
-
-void gdb_print(u32 xui) {
-  if (!dbg)
-    return;
-  color_printf(bright_green, "dbg num: %h\n", xui);
-}
-
 void init_printer() {
   vga_clear();
   for (int x = 4; x < w - 4; x++) {

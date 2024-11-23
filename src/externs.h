@@ -14,4 +14,3 @@ extern void test_default_handler();
 extern void foo();
 extern void bar();
 extern void biz();
-extern void print_stack();

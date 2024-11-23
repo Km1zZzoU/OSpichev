@@ -6,6 +6,7 @@
 #include "syscalls.h"
 #include "typedef.h"
 #include "taskmanager.h"
+#include "timer.h"
 #define IDT_SIZE 256
 
 #define __FUNC_GEN(x) extern void __trap_##x();
@@ -59,130 +60,6 @@ typedef struct {
   u32 ptr;
 } didt;
 #pragma pack(push)
-
-void timer_trap () {
-  if (system_tick++ == 91) {
-    system_tick = 1;
-    system_sec += 5;
-    if (system_sec == 60) {
-      system_sec = 0;
-      system_min++;
-    }
-    if (system_min == 60) {
-      system_min = 0;
-      system_hour++;
-    }
-  }
-  int oldx = curx;
-  int oldy = cury;
-  curx = 85;
-  cury = 0;
-  // if (current_task->next->next == NULL) {
-  // __cli();
-  // __loop();
-  // }
-  for (int i = curx; i < 99; i++)
-    vga_draw(font[0xdb], i, 0, bg0);
-  // color_printf(green1, "%h->%h->%h->%h->%h->%h ",
-    // current_task->cntxt->eip,
-    // current_task->next->cntxt->eip,
-    // current_task->next->next->cntxt->eip,
-    // current_task->next->next->next->cntxt->eip,
-    // current_task->next->next->next->next->cntxt->eip,
-    // current_task->next->next->next->next->next->cntxt->eip);
-  vga_puts(red1, "time:");
-  vga_putn(red0, system_hour, 10);
-  vga_putc(red1, '|');
-  vga_putn(red0, system_min, 10);
-  vga_putc(red1, '|');
-  vga_putn(red0, system_sec, 10);
-  vga_putc(red1, '|');
-  vga_putn(yellow1, system_tick, 10);
-  curx = oldx;
-  cury = oldy;
-}
-
-void kb_trap () {
-  click_handler();
-}
-
-void __trap_handler(cntxt* cntxt) {
-  // color_printf(aqua1, "%h\n", cntxt->eip);
-  // __cli();
-  if (dbg)
-    color_printf(bright_blue, "cntxt on %h (%h)", cntxt, sizeof(*cntxt));
-  if (dbg)
-    print_stack();
-  if (dbg)
-    color_printf(red1, "trap %h ", cntxt->vector);
-  // gdb_forks();
-  // color_printf(red0, "trap\n");
-  // gdb_forks();
-  switch (cntxt->vector) {
-  case 0x20:
-    if (dbg)
-      printf("tick: ");
-    gdb_forks();
-    if (current_task) {
-      switch_task(&cntxt);
-    }
-    timer_trap();
-    // color_printf(aqua0, "tick end: %h\n", cntxt.vector);
-    // gdb_forks();
-    if (!cntxt->vector) {
-      __sti();
-      __eoi();
-    }
-    if (dbg)
-      printf("timer end\n");
-    break;
-  case 0x21:
-    kb_trap();
-    break;
-  case 0x42:
-    if (dbg)
-      printf("ecal: ");
-    // color_printf(bright_aqua, "0x42\n");
-    gdb_forks();
-    syscall_print((char* )cntxt->eax);
-    // color_printf(bright_aqua, "0x24\n");
-    gdb_forks();
-    if (dbg)
-      printf("ecal end\n ");
-    break;
-  default:
-    // init_printer();
-    __cli();
-    color_printf(red1, "\nKernel panic: unhadled interrupt %h. Context:\n"
-      "ESP = %h\n"
-      "EAX = %h\nECX = %h\nEDX = %h\n"
-      "EBX = %h\nEBP = %h\nESI = %h\n"
-      "EDI = %h\n"
-      "DS = %h ES = %h FS = %h GS = %h\n"
-      "EIP = %h, error code = %h\n",
-      cntxt->vector,
-      cntxt->esp,
-      cntxt->eax, cntxt->ecx, cntxt->edx,
-      cntxt->ebx, cntxt->ebp, cntxt->esi,
-      cntxt->edi,
-      cntxt->ds, cntxt->es, cntxt->fs, cntxt->gs,
-      cntxt->eip, cntxt->e_code);
-    __loop();
-    break;
-  }
-  if (cntxt->vector >= 0x20 && cntxt->vector <= 0x30 || cntxt->vector == 0x42) {
-    __sti();
-    if (cntxt->vector < 0x30) {
-      __eoi();
-    }
-  }
-  if (dbg)
-    printf("eoth");
-  if (dbg) {
-    color_printf(orange1, " stack for recov %h ", cntxt->esp);
-  }
-  gdb_forks();
-}
 
 void load_idt() {
   color_printf(orange0, "start load_idt...\n");

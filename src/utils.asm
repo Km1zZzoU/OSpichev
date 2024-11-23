@@ -65,29 +65,22 @@ __eoi:
 hello:
     dq "Hi"
 foo:
-;    push eax
-    call print_stack
     mov eax, hello
     int 0x42
-;    pop eax
     ret
 
 [GLOBAL bar]
 name:
     dq "Os"
 bar:
-;    push eax
     mov eax, name
     int 0x42
-;    pop eax
     ret
 
 [GLOBAL biz]
 bz:
     dq "bz"
 biz:
-;    push eax
     mov eax, bz
     int 0x42
-;    pop eax
     ret

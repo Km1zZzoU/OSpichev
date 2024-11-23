@@ -22,6 +22,10 @@ byte shift_scancode[] = {
   '*', 0, ' ', //0x39
 };
 
+void kb_trap () {
+  click_handler();
+}
+
 byte shift_togle = 0;
 void click_handler() {
   u16 kbd_port = 0x60;

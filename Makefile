@@ -38,10 +38,10 @@ utils:
 	nasm $(NASM_FLAGS) $(SRC_DIR)/utils.asm -o utils.o
 
 run: $(BOOT_IMG)
-	$(QEMU) -fda $(BOOT_IMG) -monitor stdio #-d int,cpu,mmu -D debug.log
+	$(QEMU) -drive file=$(BOOT_IMG),if=floppy,format=raw -monitor stdio
 
 gdb: $(BOOT_IMG)
-	$(QEMU) -fda $(BOOT_IMG) -monitor stdio -s -S #-d int,cpu,mmu -D debug.log
+	$(QEMU) -fda $(BOOT_IMG) -monitor stdio -s -S
 
 clean:
 	rm -f $(BOOT_BIN) $(KERNEL_BIN) *.o $(BOOT_IMG) vesa.bin boot.bin kernel.bin
