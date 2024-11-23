@@ -66,6 +66,7 @@ hello:
     dq "Hi"
 foo:
 ;    push eax
+    call print_stack
     mov eax, hello
     int 0x42
 ;    pop eax

@@ -53,22 +53,21 @@ TRAP_WITH_ERROR_CODE 011110
 TRAP_WITHOUT_ERROR_CODE 011111
 TRAP_WITHOUT_ERROR_CODE 100000
 
-;[GLOBAL __trap_100000]
-;__trap_100000:
-;    call biz
+[GLOBAL __trap_1000010]
+__trap_1000010:
+;    call print_stack
 ;    call gdb_forks
-;    push 0x42
-;    push 0b100000
-;    jmp collect_context
+    push 0x42
+    push 0b1000010
+    jmp collect_context
 
 
 TRAP_WITHOUT_ERROR_CODE 100001
 
-TRAP_WITHOUT_ERROR_CODE 1000010 ; -> 0x42;
+;TRAP_WITHOUT_ERROR_CODE 1000010 ; -> 0x42;
 
 
 collect_context:
-;    call gdb_print
 ;    call gdb_forks
     push ds
     push es
@@ -80,12 +79,15 @@ collect_context:
     mov eax, 0x10
     mov ds, ax
     mov es, ax
-
+    call print_stack
     push esp
     call __trap_handler
+    call print_stack
     pop esp
 
+    call print_stack
     popa
+    call print_stack
     pop gs
     pop fs
     pop es
@@ -102,6 +104,11 @@ collect_context:
 ;    push eax
 ;    popfd
 ;    pop eax
-
     IRETD
 
+[GLOBAL print_stack]
+print_stack:
+    push esp
+    call gdb_print
+    pop esp
+    ret

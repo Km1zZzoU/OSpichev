@@ -6,7 +6,6 @@
 #include "syscalls.h"
 #include "typedef.h"
 #include "taskmanager.h"
-
 #define IDT_SIZE 256
 
 #define __FUNC_GEN(x) extern void __trap_##x();
@@ -111,6 +110,10 @@ void __trap_handler(cntxt* cntxt) {
   // color_printf(aqua1, "%h\n", cntxt->eip);
   // __cli();
   if (dbg)
+    color_printf(bright_blue, "cntxt on %h (%h)", cntxt, sizeof(*cntxt));
+  if (dbg)
+    print_stack();
+  if (dbg)
     color_printf(red1, "trap %h ", cntxt->vector);
   // gdb_forks();
   // color_printf(red0, "trap\n");
@@ -120,7 +123,7 @@ void __trap_handler(cntxt* cntxt) {
     if (dbg)
       printf("tick: ");
     gdb_forks();
-    if (current_task && !(system_tick & ((2 << 3) - 1))) {
+    if (current_task) {
       switch_task(&cntxt);
     }
     timer_trap();
@@ -167,7 +170,7 @@ void __trap_handler(cntxt* cntxt) {
     __loop();
     break;
   }
-  if (cntxt->vector >= 0x20 && cntxt->vector <= 0x30) {
+  if (cntxt->vector >= 0x20 && cntxt->vector <= 0x30 || cntxt->vector == 0x42) {
     __sti();
     if (cntxt->vector < 0x30) {
       __eoi();
@@ -175,6 +178,9 @@ void __trap_handler(cntxt* cntxt) {
   }
   if (dbg)
     printf("eoth");
+  if (dbg) {
+    color_printf(orange1, " stack for recov %h ", cntxt->esp);
+  }
   gdb_forks();
 }
 

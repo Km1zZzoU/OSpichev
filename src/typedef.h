@@ -5,6 +5,7 @@ typedef unsigned int u32;
 typedef unsigned long long u64;
 typedef const unsigned int colorType;
 
+#pragma pack(push, 1)
 typedef struct {
   u32 edi;
   u32 esi;
@@ -31,7 +32,7 @@ typedef struct {
   u32 start_esp;
   u16 ss;
 } cntxt;
-
+#pragma pack(pop)
 typedef struct Task {
   cntxt       *cntxt;
   struct Task *next;

@@ -28,10 +28,14 @@ void hello() {
   //   );
   // for (byte i = 0;; vga_putn(red0, i++, 16), foo());
   for (;;) {
-    // __cli();
-    printf("dbghi");
-    gdb_forks();
-    foo();
+    __sti();
+    if (dbg) {
+      print_stack();
+      gdb_forks();
+    }
+
+    printf("dbghi\n");
+    // foo();
     // __sti();
   }
 }
@@ -39,21 +43,27 @@ void hello() {
 void name() {
   // for (byte i = 0;;vga_putn(purple0, i++, 16), bar());
   for (;;) {
-    printf("dbgname");
-    gdb_forks();
+    __sti();
+    printf("dbgname\n");
+    if (dbg) {
+      print_stack();
+      gdb_forks();
+    }
+    // if (fib(40))
+    //   bar();
     // __cli();
-    bar();
     // __sti();
   }
 }
 
 void biiz() {
-  for (byte i = 0;;__cli(), vga_putn(orange0, i++, 16), biz(), __sti());
+  for (byte i = 0;;vga_putn(orange0, fib(i++), 16), biz());
   biz();
 }
 
+
 void kmain() {
-  dbg = 1;
+  dbg = 0;
   init_printer();
   color_printf(yellow0, "\nprinter init...\n\n");
   setup_paging();
@@ -67,6 +77,7 @@ void kmain() {
   color_printf(bright_red, "%h %h\n", hello, name);
   append_task(task, hello);
   append_task(task, name);
+  // append_task(task, biiz);
   // color_printf(red1, "setup complete! Welcome to the OSpichev!\n\n\n\n\n\n");
   go(task);
   __loop();

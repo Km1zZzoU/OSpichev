@@ -14,7 +14,7 @@ void switch_task(cntxt** context) {
 
   if (dbg)
     color_printf(yellow0, "switch:\n");
-  gdb_forks();
+  // gdb_forks();
   // color_printf(yellow0, "%h\n", (*context)->eip);
   //
   // color_printf(yellow0, "esp: %h->%h\n", current_task->cntxt->esp, current_task->next->cntxt->esp);
@@ -42,9 +42,10 @@ void switch_task(cntxt** context) {
   // color_printf(bright_aqua, "cntx: %h\n", *context);
   // printf("3\n");
   *context = current_task->cntxt;
-  if (dbg)
-    printf("4");
-  gdb_forks();
+
+  // if (dbg)
+  //   printf("4");
+  // gdb_forks();
 
   // color_printf(yellow0, "%h\n", (*context)->eip);
   // current_task->cntxt = *context;
@@ -93,6 +94,7 @@ void append_task(Task* task, void (*func)()) {
 }
 
 cntxt* init_context(void (*func)()) {
+  u32 stack = (u32)make(_4KB);
   cntxt* context = make(sizeof(cntxt));
   context->eax = 0;
   context->ebx = 0;
@@ -101,8 +103,7 @@ cntxt* init_context(void (*func)()) {
   context->esi = 0;
   context->edi = 0;
   context->ebp = 0;
-  context->esp = (u32)make(_4KB);
-  context->esp += _4KB;
+  context->esp = stack + _4KB;
   context->eip = (u32)func;
   context->gs = 0x10;
   context->fs = 0x10;
