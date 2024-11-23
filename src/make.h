@@ -1,7 +1,7 @@
 #pragma once
 #include "typedef.h"
 
-static void* START = 0x800000;
+void* START = 0x800000;
 #define END 0x10800000
 
 void* make(u32 size) {

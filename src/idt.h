@@ -107,37 +107,45 @@ void kb_trap () {
   click_handler();
 }
 
-void __trap_handler(cntxt cntxt) {
+void __trap_handler(cntxt* cntxt) {
   // color_printf(aqua1, "%h\n", cntxt->eip);
   // __cli();
-  // printf("trap");
+  if (dbg)
+    color_printf(red1, "trap %h ", cntxt->vector);
   // gdb_forks();
   // color_printf(red0, "trap\n");
   // gdb_forks();
-  switch (cntxt.vector) {
+  switch (cntxt->vector) {
   case 0x20:
-    // printf("tick: ");
-    // gdb_forks();
-    if (current_task) {
+    if (dbg)
+      printf("tick: ");
+    gdb_forks();
+    if (current_task && !(system_tick & ((2 << 3) - 1))) {
       switch_task(&cntxt);
     }
     timer_trap();
     // color_printf(aqua0, "tick end: %h\n", cntxt.vector);
     // gdb_forks();
-    if (!cntxt.vector) {
+    if (!cntxt->vector) {
       __sti();
       __eoi();
     }
+    if (dbg)
+      printf("timer end\n");
     break;
   case 0x21:
     kb_trap();
     break;
   case 0x42:
-    color_printf(bright_aqua, "0x42\n");
-    // gdb_forks();
-    syscall_print((char* )cntxt.eax);
+    if (dbg)
+      printf("ecal: ");
+    // color_printf(bright_aqua, "0x42\n");
+    gdb_forks();
+    syscall_print((char* )cntxt->eax);
     // color_printf(bright_aqua, "0x24\n");
-    // gdb_forks();
+    gdb_forks();
+    if (dbg)
+      printf("ecal end\n ");
     break;
   default:
     // init_printer();
@@ -148,27 +156,26 @@ void __trap_handler(cntxt cntxt) {
       "EBX = %h\nEBP = %h\nESI = %h\n"
       "EDI = %h\n"
       "DS = %h ES = %h FS = %h GS = %h\n"
-      "CS = %h SS = %h EIP = %h\n"
-      "EFLAGS = %h error code = %h\n",
-      cntxt.vector,
-      cntxt.esp,
-      cntxt.eax, cntxt.ecx, cntxt.edx,
-      cntxt.ebx, cntxt.ebp, cntxt.esi,
-      cntxt.edi,
-      cntxt.ds, cntxt.es, cntxt.fs, cntxt.gs,
-      cntxt.cs, cntxt.ss, cntxt.eip,
-      cntxt.e_flags, cntxt.e_code);
+      "EIP = %h, error code = %h\n",
+      cntxt->vector,
+      cntxt->esp,
+      cntxt->eax, cntxt->ecx, cntxt->edx,
+      cntxt->ebx, cntxt->ebp, cntxt->esi,
+      cntxt->edi,
+      cntxt->ds, cntxt->es, cntxt->fs, cntxt->gs,
+      cntxt->eip, cntxt->e_code);
     __loop();
     break;
   }
-  if (cntxt.vector >= 0x20) {
+  if (cntxt->vector >= 0x20 && cntxt->vector <= 0x30) {
     __sti();
-    if (cntxt.vector < 0x30) {
+    if (cntxt->vector < 0x30) {
       __eoi();
     }
   }
-  // printf("eoth");
-  // gdb_forks();
+  if (dbg)
+    printf("eoth");
+  gdb_forks();
 }
 
 void load_idt() {

@@ -1,9 +1,11 @@
 section .text
 extern __trap_handler
-
+extern gdb_forks
+extern gdb_print
 %macro TRAP_WITH_ERROR_CODE 1
 [GLOBAL __trap_%1]
 __trap_%1:
+;    cli
     push 0b%1
     jmp collect_context
 %endmacro
@@ -11,6 +13,7 @@ __trap_%1:
 %macro TRAP_WITHOUT_ERROR_CODE 1
 [GLOBAL __trap_%1]
 __trap_%1:
+;    cli
     push 0x42
     push 0b%1
     jmp collect_context
@@ -49,22 +52,38 @@ TRAP_WITH_ERROR_CODE 011101
 TRAP_WITH_ERROR_CODE 011110
 TRAP_WITHOUT_ERROR_CODE 011111
 TRAP_WITHOUT_ERROR_CODE 100000
+
+;[GLOBAL __trap_100000]
+;__trap_100000:
+;    call biz
+;    call gdb_forks
+;    push 0x42
+;    push 0b100000
+;    jmp collect_context
+
+
 TRAP_WITHOUT_ERROR_CODE 100001
 
 TRAP_WITHOUT_ERROR_CODE 1000010 ; -> 0x42;
 
+
 collect_context:
+;    call gdb_print
+;    call gdb_forks
     push ds
     push es
     push fs
     push gs
     pusha
+;    call gdb_forks
 
     mov eax, 0x10
     mov ds, ax
     mov es, ax
 
+    push esp
     call __trap_handler
+    pop esp
 
     popa
     pop gs
@@ -72,6 +91,11 @@ collect_context:
     pop es
     pop ds
     add esp, 8
+;    call gdb_print
+;    call gdb_print
+;    call gdb_forks
+;    cli
+;    jmp $
 
 ;    push eax
 ;    mov eax, [esp + 12]

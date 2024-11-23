@@ -43,9 +43,6 @@ run: $(BOOT_IMG)
 gdb: $(BOOT_IMG)
 	$(QEMU) -fda $(BOOT_IMG) -monitor stdio -s -S #-d int,cpu,mmu -D debug.log
 
-rr: $(BOOT_IMG)
-	./rr-5.8.0-Linux-x86_64/bin/rr record -drive file=$(BOOT_IMG), format=raw -d int,cpu,mmu -D debug.log
-
 clean:
 	rm -f $(BOOT_BIN) $(KERNEL_BIN) *.o $(BOOT_IMG) vesa.bin boot.bin kernel.bin
 

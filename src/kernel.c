@@ -27,12 +27,24 @@ void hello() {
   //       "int $0"
   //   );
   // for (byte i = 0;; vga_putn(red0, i++, 16), foo());
-  for (;;foo());
+  for (;;) {
+    // __cli();
+    printf("dbghi");
+    gdb_forks();
+    foo();
+    // __sti();
+  }
 }
 
 void name() {
   // for (byte i = 0;;vga_putn(purple0, i++, 16), bar());
-  for (;;bar());
+  for (;;) {
+    printf("dbgname");
+    gdb_forks();
+    // __cli();
+    bar();
+    // __sti();
+  }
 }
 
 void biiz() {
@@ -40,20 +52,24 @@ void biiz() {
   biz();
 }
 
-void start();
 void kmain() {
+  dbg = 1;
   init_printer();
   color_printf(yellow0, "\nprinter init...\n\n");
   setup_paging();
   load_idt();
   init_pic();
+  if (dbg)
+    init_printer();
   color_printf(red0, "set IF...\n");
+  // foo();
   Task* task = init_task();
-  foo();
+  color_printf(bright_red, "%h %h\n", hello, name);
   append_task(task, hello);
-  append_task(task, biiz);
+  append_task(task, name);
   // color_printf(red1, "setup complete! Welcome to the OSpichev!\n\n\n\n\n\n");
   go(task);
+  __loop();
   // foo();
   // biiz();
   __loop(); //1a565
