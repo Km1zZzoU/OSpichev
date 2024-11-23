@@ -26,10 +26,11 @@ void init_pic();
 void timer_trap();
 void kb_trap();
 void click_handler();
+void gdb_forks();
 byte system_tick = 0;
 byte system_sec = 0;
 byte system_min = 0;
 byte system_hour = 0;
 
-Task Main;
 Task* current_task;
+int flag_context_switch_happened;

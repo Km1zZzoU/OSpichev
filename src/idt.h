@@ -76,17 +76,21 @@ void timer_trap () {
   }
   int oldx = curx;
   int oldy = cury;
-  curx = 0;
+  curx = 85;
   cury = 0;
-  if (Main.next->next->next == NULL) {
-    __cli();
-    __loop();
-  }
+  // if (current_task->next->next == NULL) {
+  // __cli();
+  // __loop();
+  // }
   for (int i = curx; i < 99; i++)
     vga_draw(font[0xdb], i, 0, bg0);
-  color_printf(green1, "Main:%h->%h->%h->%h->%h->%h ", Main.cntxt->eip, Main.next->cntxt->eip,
-    Main.next->next->cntxt->eip, Main.next->next->next->cntxt->eip, Main.next->next->next->next->cntxt->eip,
-    Main.next->next->next->next->next->cntxt->eip);
+  // color_printf(green1, "%h->%h->%h->%h->%h->%h ",
+    // current_task->cntxt->eip,
+    // current_task->next->cntxt->eip,
+    // current_task->next->next->cntxt->eip,
+    // current_task->next->next->next->cntxt->eip,
+    // current_task->next->next->next->next->cntxt->eip,
+    // current_task->next->next->next->next->next->cntxt->eip);
   vga_puts(red1, "time:");
   vga_putn(red0, system_hour, 10);
   vga_putc(red1, '|');
@@ -103,33 +107,37 @@ void kb_trap () {
   click_handler();
 }
 
-
-void __trap_handler(cntxt* cntxt) {
-  __cli();
-  color_printf(aqua1, "%h\n", cntxt->eip);
-  switch (cntxt->vector) {
+void __trap_handler(cntxt cntxt) {
+  // color_printf(aqua1, "%h\n", cntxt->eip);
+  // __cli();
+  // printf("trap");
+  // gdb_forks();
+  // color_printf(red0, "trap\n");
+  // gdb_forks();
+  switch (cntxt.vector) {
   case 0x20:
-    printf("tick\n");
-    if (!system_tick) {
-      init_task_manager(cntxt);
-      // color_printf(aqua0, "%h\n", Main.cntxt);
-      // __cli();
-      // __loop();
-    } else if (system_tick == 12) {
-      system_tick = 0;
-      // color_printf(aqua0, "%h\n", Main.cntxt);
-      // color_printf(yellow0, "switch:\n");
-      // color_printf(yellow0, "eip: (%h) %h->%h\n", current_task->cntxt->eip, cntxt->eip, current_task->next->cntxt->eip);
-      // color_printf(yellow0, "esp: (%h) %h->%h\n", current_task->cntxt->esp, cntxt->esp, current_task->next->cntxt->esp);
+    // printf("tick: ");
+    // gdb_forks();
+    if (current_task) {
       switch_task(&cntxt);
     }
     timer_trap();
+    // color_printf(aqua0, "tick end: %h\n", cntxt.vector);
+    // gdb_forks();
+    if (!cntxt.vector) {
+      __sti();
+      __eoi();
+    }
     break;
   case 0x21:
     kb_trap();
     break;
   case 0x42:
-    syscall_print((char* )cntxt->eax);
+    color_printf(bright_aqua, "0x42\n");
+    // gdb_forks();
+    syscall_print((char* )cntxt.eax);
+    // color_printf(bright_aqua, "0x24\n");
+    // gdb_forks();
     break;
   default:
     // init_printer();
@@ -142,21 +150,25 @@ void __trap_handler(cntxt* cntxt) {
       "DS = %h ES = %h FS = %h GS = %h\n"
       "CS = %h SS = %h EIP = %h\n"
       "EFLAGS = %h error code = %h\n",
-      cntxt->vector,
-      cntxt->esp,
-      cntxt->eax, cntxt->ecx, cntxt->edx,
-      cntxt->ebx, cntxt->ebp, cntxt->esi,
-      cntxt->edi,
-      cntxt->ds, cntxt->es, cntxt->fs, cntxt->gs,
-      cntxt->cs, cntxt->ss, cntxt->eip,
-      cntxt->e_flags, cntxt->e_code);
+      cntxt.vector,
+      cntxt.esp,
+      cntxt.eax, cntxt.ecx, cntxt.edx,
+      cntxt.ebx, cntxt.ebp, cntxt.esi,
+      cntxt.edi,
+      cntxt.ds, cntxt.es, cntxt.fs, cntxt.gs,
+      cntxt.cs, cntxt.ss, cntxt.eip,
+      cntxt.e_flags, cntxt.e_code);
     __loop();
     break;
   }
-  if (cntxt->vector < 0x30 || cntxt->vector == 228) {
-    __eoi();
+  if (cntxt.vector >= 0x20) {
+    __sti();
+    if (cntxt.vector < 0x30) {
+      __eoi();
+    }
   }
-  __sti();
+  // printf("eoth");
+  // gdb_forks();
 }
 
 void load_idt() {

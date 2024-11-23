@@ -1,6 +1,7 @@
 %include "src/traps.asm"
 %include "src/testdefaulthandler.asm"
 
+extern gdb_forks
 section .text
 
 [GLOBAL __loop]

@@ -1,6 +1,6 @@
 section .text
 extern __trap_handler
-extern __debug_print_esp
+
 %macro TRAP_WITH_ERROR_CODE 1
 [GLOBAL __trap_%1]
 __trap_%1:
@@ -64,9 +64,7 @@ collect_context:
     mov ds, ax
     mov es, ax
 
-    push esp
     call __trap_handler
-    pop esp
 
     popa
     pop gs
@@ -74,5 +72,12 @@ collect_context:
     pop es
     pop ds
     add esp, 8
+
+;    push eax
+;    mov eax, [esp + 12]
+;    push eax
+;    popfd
+;    pop eax
+
     IRETD
 

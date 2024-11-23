@@ -25,15 +25,15 @@ typedef struct {
   u32 vector;
   u32 e_code;
   u32 eip;
-  u16 cs;
-  u16 p5;
-  u32 e_flags;
-  u32 start_esp;
-  u16 ss;
+  // u16 cs;
+  // u16 p5;
+  // u32 e_flags;
+  // u32 start_esp;
+  // u16 ss;
 } cntxt;
 
 typedef struct Task {
-  cntxt *cntxt;
+  cntxt       *cntxt;
   struct Task *next;
 } Task;
 

@@ -56,6 +56,12 @@ int curx = 0, cury = 0;
 #define bright_aqua  0x8ec07c
 #define bright_orange 0xfe8019
 
+void gdb_forks() {
+  color_printf(yellow0, "\nptr task: %h->", current_task);
+  color_printf(yellow0, "%h->", current_task->next);
+  color_printf(yellow0, "%h->", current_task->next->next);
+  color_printf(yellow0, "%h->\n", current_task->next->next->next);
+}
 
 void init_printer() {
   vga_clear();
