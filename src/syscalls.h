@@ -1,8 +1,8 @@
 #pragma once
+#include "windowmanager.h"
 
-void syscall_print(char* str) {
+void syscall_print(Window* window, char* str) {
   if (!str)
     kpanic("error ptr for syscall_print %h", -1);
-  printf(str);
-  printf("\n");
+  c_out(window, str);
 }

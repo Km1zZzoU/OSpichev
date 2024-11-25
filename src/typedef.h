@@ -1,9 +1,10 @@
 #pragma once
-typedef unsigned char byte;
-typedef unsigned short u16;
-typedef unsigned int u32;
+
+typedef unsigned char      byte;
+typedef unsigned short     u16;
+typedef unsigned int       u32;
+typedef unsigned int       colorType;
 typedef unsigned long long u64;
-typedef const unsigned int colorType;
 
 #pragma pack(push, 1)
 typedef struct {
@@ -35,11 +36,40 @@ typedef struct {
 #pragma pack(pop)
 
 typedef struct Task {
-  cntxt       *cntxt;
-  struct Task *next;
+  cntxt*       cntxt;
+  struct Task* next;
 } Task;
 
-#define NULL ((void *)0)
-#define _4B  (1<< 2)
-#define _4KB (1<<12)
-#define _4MB (1<<22)
+typedef struct symbol {
+  byte      character;
+  colorType color;
+} symbol;
+
+typedef struct Window {
+  u32            x0;
+  u32            y0;
+  byte           width;  // in symbols 16x24
+  byte           height; // in symbols 16x24
+  symbol*        symbols;
+  u32            size_buff;
+  u32            index_for_show;
+  struct Window* next;
+} Window;
+
+typedef struct {
+  byte    id;
+  Window* window;
+  u32     window_count;
+  u32     current_window;
+} WorkSpace;
+
+typedef struct {
+  WorkSpace** workspaces;
+  u32         workspace_count;
+  u32         current_workspace;
+} WindowManager;
+
+#define NULL ((void*)0)
+#define _4B (1 << 2)
+#define _4KB (1 << 12)
+#define _4MB (1 << 22)

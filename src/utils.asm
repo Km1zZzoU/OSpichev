@@ -61,26 +61,9 @@ __eoi:
     out dx, al
     ret
 
-[GLOBAL foo]
-hello:
-    dq "Hi"
-foo:
-    mov eax, hello
-    int 0x42
-    ret
-
-[GLOBAL bar]
-name:
-    dq "Os"
-bar:
-    mov eax, name
-    int 0x42
-    ret
-
-[GLOBAL biz]
-bz:
-    dq "bz"
-biz:
-    mov eax, bz
+[GLOBAL __puts]
+__puts:
+    mov eax, [esp + 8]
+    mov ebx, [esp + 4]
     int 0x42
     ret
