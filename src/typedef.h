@@ -41,8 +41,8 @@ typedef struct Task {
 } Task;
 
 typedef struct symbol {
-  byte      character;
   colorType color;
+  byte      character;
 } symbol;
 
 typedef struct Window {
@@ -73,3 +73,7 @@ typedef struct {
 #define _4B (1 << 2)
 #define _4KB (1 << 12)
 #define _4MB (1 << 22)
+
+#define stop                                                                   \
+  __cli();                                                                     \
+  __loop();

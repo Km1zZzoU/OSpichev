@@ -7,6 +7,7 @@
 #include "symbol.h"
 #include "typedef.h"
 
+
 #define X_OUTSIDE_INDENT (size_x >> 2)
 #define Y_OUTSIDE_INDENT (10)
 #define BORDER_SIZE (size_x >> 2)
@@ -23,7 +24,7 @@
 #define size_w_window 99
 #define size_h_window 47
 
-#define START_SIZE_BUFFER_WINDOW _4MB
+#define START_SIZE_BUFFER_WINDOW _4MB * 4
 
 #define border_active_color orange1
 #define border_inactive_color bg3
@@ -77,17 +78,20 @@ static void active_window(Window* window) {
 }
 
 static byte split2(const byte x) {
-  return (x - 1) >> 1;
+  return (x - 1) / 2;
+}
+
+static byte split3(const byte x) {
+  return (x - 2) / 3;
 }
 
 Window* append_window() {
   WorkSpace* work_space = _wManager.workspaces[_wManager.current_workspace];
   if (!work_space)
-    kpanic("WindiwManager: %d work space is null", _wManager.current_workspace);
-  const byte count = ++work_space->window_count;
-
-  Window* window  = make(sizeof(Window));
-  window->symbols = (symbol*)make(START_SIZE_BUFFER_WINDOW);
+    kpanic("WindowManager: %d work space is null", _wManager.current_workspace);
+  const byte count  = ++work_space->window_count;
+  Window*    window = make(sizeof(Window));
+  window->symbols   = (symbol*)make(START_SIZE_BUFFER_WINDOW);
 
   window->index_for_show = 0;
   window->size_buff      = 0;
@@ -102,18 +106,41 @@ Window* append_window() {
 
   switch (count) {
     case 2:
-      // __sti();
-      main->next     = window;
-      window->y0     = main->y0;
+      main->next = window;
+
+      window->y0 = main->y0;
+      window->x0 = (w + X_OUTSIDE_INDENT) / 2;
+
       window->height = main->height;
-      window->x0     = (w + X_OUTSIDE_INDENT) / 2;
       window->width  = main->width;
+      update_window(window, 1, 1);
+      break;
+    case 3:
+      main->next->next = window;
+
+      Window* w2 = main->next;
+      Window* w3 = w2->next;
+
+      w2->height = split2(main->height);
+
+      w3->x0 = w2->x0;
+      w3->y0 =
+          w2->y0 + Y_OUTSIDE_INDENT + 2 * BORDER_INDENT + w2->height * size_y;
+
+      w3->height = w2->height;
+      w2->width  = w3->width;
+      update_window(w2, 1, 1);
+      update_window(w3, 1, 1);
+      break;
+    case 4:
+      main->next->next->next   = window;
+      main->next->height       = split3(main->height);
+      main->next->next->height = split3(main->height);
       break;
     default:
       break;
   }
 
-  update_window(window, 1, 1);
   return window;
 }
 
@@ -123,7 +150,7 @@ static void init_window(WorkSpace* wSpace) {
 
   wSpace->window = (Window*)make(sizeof(Window));
 
-  wSpace->window->symbols        = (symbol*)make(_4KB);
+  wSpace->window->symbols        = (symbol*)make(START_SIZE_BUFFER_WINDOW);
   wSpace->window->size_buff      = 0;
   wSpace->window->index_for_show = 0;
 
@@ -251,7 +278,7 @@ u32 ko_out(Window* window, const symbol* kostr) {
     kpanic("WindowManager: ko_out in NULL window", -1);
 
   if (window->size_buff + kolen(kostr) >
-      START_SIZE_BUFFER_WINDOW / sizeof(symbol))
+      START_SIZE_BUFFER_WINDOW / (2 * sizeof(symbol)))
     kpanic("WindowManager: ko_out in too many symbols", -1);
 
   active_window(window);
@@ -275,6 +302,5 @@ u32 col_c_out(Window* window, const char* cstr, const colorType color) {
 u32 c_out(Window* window, const char* cstr) {
   if (!window)
     kpanic("WindowManager: c_out in NULL window", -1);
-
   return col_c_out(window, cstr, fg);
 }

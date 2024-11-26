@@ -63,7 +63,9 @@ __eoi:
 
 [GLOBAL __puts]
 __puts:
+    cli
     mov eax, [esp + 8]
     mov ebx, [esp + 4]
+;    sti
     int 0x42
     ret

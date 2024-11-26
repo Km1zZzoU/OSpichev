@@ -4,14 +4,17 @@
 #include "syscalls.h"
 #include "taskmanager.h"
 
+#define SPEED_SWITCH 2
+
 void __trap_handler(cntxt* cntxt) {
   switch (cntxt->vector) {
     case 0x20:
-      if (current_task)
+      if (current_task && !(system_tick & ((1 << SPEED_SWITCH) - 1)))
         switch_task(&cntxt);
       update_time();
-      if (!cntxt->vector)
+      if (!cntxt->vector) {
         __eoi();
+      }
       break;
     case 0x21:
       kb_trap();

@@ -26,35 +26,29 @@ int fib(int n) {
 }
 
 
-void hello() {
+void qwe() {
   for (;;) {
-    __sti();
-    printf("dbghi\n");
+    __puts(ws[0], "0");
   }
 }
 
-void qwe() {
-  for (;;)
-    __puts(ws[0], "qwe");
+void asd() {
+  for (;;) {
+    __puts(ws[1], "1");
+  }
 }
 
-void name() {
-  for (;;)
-    __puts(ws[1], "My name is OSpichev!");
+void zxc() {
+  for (;;) {
+    __puts(ws[2], "2");
+  }
 }
 
 void kmain() {
-  ws[0] = init_window_manager(1);
+  ws[0] = init_window_manager(2);
   ws[1] = append_window();
+  // ws[2] = append_window();
 
-  // c_out(main, "Hello, world!\n");
-  // c_out(main,
-  // "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq123456");
-  // c_out(secondary,
-  //       "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq1234567");
-  // c_out(secondary, "My name is Ospichev!\n");
-
-  // __loop();
   // init_printer();
   // color_printf(yellow0, "\nprinter init...\n\n");
 
@@ -64,13 +58,10 @@ void kmain() {
   // color_printf(red0, "set IF...\n");
   Task* task = init_task();
   // color_printf(bright_red, "%h %h\n", hello, name);
-  // __puts(ws[0], "My name is OSpichev!");
 
-  for (u32 i = 0; i < 116; i++)
-    __puts(ws[0], "My name is OSpichev!");
-  __loop();
   append_task(task, qwe);
-  append_task(task, name);
+  append_task(task, asd);
+  // append_task(task, zxc);
   go(task);
   __loop();
 }

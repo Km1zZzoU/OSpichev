@@ -15,6 +15,7 @@ void switch_task(cntxt** context) {
   } else {
     flag_context_switch_happened = 1;
   }
+  *context = current_task->cntxt;
 }
 
 Task* init_task() {

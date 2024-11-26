@@ -4,7 +4,6 @@ extern __trap_handler
 %macro TRAP_WITH_ERROR_CODE 1
 [GLOBAL __trap_%1]
 __trap_%1:
-;    cli
     push 0b%1
     jmp collect_context
 %endmacro
@@ -12,8 +11,7 @@ __trap_%1:
 %macro TRAP_WITHOUT_ERROR_CODE 1
 [GLOBAL __trap_%1]
 __trap_%1:
-;    cli
-    push 0x42
+    push 228
     push 0b%1
     jmp collect_context
 %endmacro
