@@ -32,3 +32,4 @@ byte  system_min  = 0;
 byte  system_hour = 0;
 
 Window* ws[0x50];
+u32     count_sw = 0;

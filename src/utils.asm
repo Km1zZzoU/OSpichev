@@ -63,7 +63,7 @@ __eoi:
 
 [GLOBAL __puts]
 __puts:
-    cli
+;    cli
     mov eax, [esp + 8]
     mov ebx, [esp + 4]
 ;    sti

@@ -28,8 +28,6 @@ void init_pic() {
   // color_printf(green0, "  slave init...\n");
   // color_printf(green0, "  start init kb and timer...\n");
   // __outb(MASTER_DATA, ~0); //off all
-  __outb(MASTER_DATA, ~1); // on timer
-  __outb(MASTER_DATA, ~2); // on keybd
   __outb(MASTER_DATA, ~3); // on all
   // color_printf(green0, "  kb and timer init...\n");
   // color_printf(green0, "pic init...\n\n");

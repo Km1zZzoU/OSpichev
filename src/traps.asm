@@ -55,10 +55,10 @@ TRAP_WITHOUT_ERROR_CODE 1000010 ; -> 0x42;
 
 
 collect_context:
-    push ds
-    push es
-    push fs
     push gs
+    push fs
+    push es
+    push ds
     pusha
 
     mov eax, 0x10
@@ -70,10 +70,10 @@ collect_context:
     pop esp
 
     popa
-    pop gs
-    pop fs
-    pop es
     pop ds
+    pop es
+    pop fs
+    pop gs
     add esp, 8
 
     IRETD

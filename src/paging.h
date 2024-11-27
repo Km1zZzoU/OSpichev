@@ -14,8 +14,7 @@ void setup_paging() {
   // color_printf(purple1, "  off first page...\n");
 
   const u32 default_PTE = 0b11;
-  for (u32 frame_address = _4KB; frame_address >= _4KB;
-       frame_address += _4KB) {
+  for (u32 frame_address = _4KB; frame_address >= _4KB; frame_address += _4KB) {
     const u32 PTE     = default_PTE | frame_address;
     *(u32*)start_addr = PTE;
     start_addr += _4B;
@@ -26,8 +25,7 @@ void setup_paging() {
 
   start_addr            = PtrPDEs;
   const u32 default_PDE = default_PTE;
-  for (u32 pte_address = PtrPTEs; pte_address < PtrPDEs;
-       pte_address += _4KB) {
+  for (u32 pte_address = PtrPTEs; pte_address < PtrPDEs; pte_address += _4KB) {
     const u32 PDE     = default_PDE | pte_address;
     *(u32*)start_addr = PDE;
     start_addr += _4B;

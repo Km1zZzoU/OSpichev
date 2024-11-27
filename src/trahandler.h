@@ -4,9 +4,10 @@
 #include "syscalls.h"
 #include "taskmanager.h"
 
-#define SPEED_SWITCH 2
+#define SPEED_SWITCH 0
 
 void __trap_handler(cntxt* cntxt) {
+  __cli();
   switch (cntxt->vector) {
     case 0x20:
       if (current_task && !(system_tick & ((1 << SPEED_SWITCH) - 1)))
@@ -22,9 +23,10 @@ void __trap_handler(cntxt* cntxt) {
     case 0x42:
       syscall_print((Window*)cntxt->ebx, (char*)cntxt->eax);
       __sti();
+      __eoi();
       break;
     default:
-      init_printer();
+      // init_printer();
       __cli();
       color_printf(red1,
                    "\nKernel panic: unhadled interrupt %h. Context:\n"
@@ -32,17 +34,16 @@ void __trap_handler(cntxt* cntxt) {
                    "EAX = %h\nECX = %h\nEDX = %h\n"
                    "EBX = %h\nEBP = %h\nESI = %h\n"
                    "EDI = %h\n"
-                   "DS = %h ES = %h FS = %h GS = %h\n"
+                   "DS = %h ES = %h FS = %h\n"
                    "EIP = %h, error code = %h\n",
                    cntxt->vector, cntxt->esp, cntxt->eax, cntxt->ecx,
                    cntxt->edx, cntxt->ebx, cntxt->ebp, cntxt->esi, cntxt->edi,
-                   cntxt->ds, cntxt->es, cntxt->fs, cntxt->gs, cntxt->eip,
-                   cntxt->e_code);
+                   cntxt->ds, cntxt->es, cntxt->fs, cntxt->eip, cntxt->e_code);
       __loop();
       break;
   }
   if (cntxt->vector >= 0x20 && cntxt->vector <= 0x30) {
-    __sti();
     __eoi();
+    __sti();
   }
 }

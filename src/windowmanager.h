@@ -13,6 +13,7 @@
 #define BORDER_SIZE (size_x >> 2)
 #define INSIDE_INDENT (size_x >> 4)
 #define BORDER_INDENT (BORDER_SIZE + INSIDE_INDENT)
+#define Y_OUTSIDE_BETWEEN (size_y - 2 * BORDER_INDENT)
 #define BETWEEN_INDENT_X (2 * BORDER_INDENT + X_OUTSIDE_INDENT)
 #define BETWEEN_INDENT_Y (2 * BORDER_INDENT + Y_OUTSIDE_INDENT)
 #define X_INDENT (X_OUTSIDE_INDENT + BORDER_INDENT)
@@ -85,6 +86,19 @@ static byte split3(const byte x) {
   return (x - 2) / 3;
 }
 
+void clear_workspace() {
+  for (u32 y = 0; y < size_h_window * size_y + 2 * BORDER_INDENT; y++) {
+    for (u32 x = 0; x < size_w_window * size_x + 2 * BORDER_INDENT; x++)
+      getptr(0, 0, X_OUTSIDE_INDENT + x + w * (Y_OUTSIDE_INDENT_WIN + y)) = 0;
+  }
+}
+
+void resize(WorkSpace* wSpace) {
+  clear_workspace();
+  for (Window* win = wSpace->window; win; win = win->next)
+    update_window(win, 1, 1);
+}
+
 Window* append_window() {
   WorkSpace* work_space = _wManager.workspaces[_wManager.current_workspace];
   if (!work_space)
@@ -101,7 +115,6 @@ Window* append_window() {
 
   if (count == 2) {
     main->width = split2(main->width);
-    update_window(main, 1, 1);
   }
 
   switch (count) {
@@ -113,7 +126,6 @@ Window* append_window() {
 
       window->height = main->height;
       window->width  = main->width;
-      update_window(window, 1, 1);
       break;
     case 3:
       main->next->next = window;
@@ -124,22 +136,22 @@ Window* append_window() {
       w2->height = split2(main->height);
 
       w3->x0 = w2->x0;
-      w3->y0 =
-          w2->y0 + Y_OUTSIDE_INDENT + 2 * BORDER_INDENT + w2->height * size_y;
+      w3->y0 = w2->y0 + w2->height * size_y + size_y;
 
       w3->height = w2->height;
-      w2->width  = w3->width;
-      update_window(w2, 1, 1);
-      update_window(w3, 1, 1);
+      w3->width  = w2->width;
       break;
     case 4:
-      main->next->next->next   = window;
+      main->next->next->next = window;
+
       main->next->height       = split3(main->height);
       main->next->next->height = split3(main->height);
       break;
     default:
       break;
   }
+
+  resize(work_space);
 
   return window;
 }

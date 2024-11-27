@@ -9,6 +9,7 @@ Task* current_task;
 int   flag_context_switch_happened;
 
 void switch_task(cntxt** context) {
+  count_sw++;
   if (flag_context_switch_happened == 1) {
     current_task->cntxt = *context;
     current_task        = current_task->next;

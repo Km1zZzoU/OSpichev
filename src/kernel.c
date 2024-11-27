@@ -28,23 +28,24 @@ int fib(int n) {
 
 void qwe() {
   for (;;) {
-    __puts(ws[0], "0");
+    __puts(ws[1], "q");
   }
 }
 
 void asd() {
   for (;;) {
-    __puts(ws[1], "1");
+    __puts(ws[0], "w");
   }
 }
 
 void zxc() {
   for (;;) {
-    __puts(ws[2], "2");
+    __puts(ws[2], "ose 2024 ");
   }
 }
 
 void kmain() {
+  setup_paging();
   ws[0] = init_window_manager(2);
   ws[1] = append_window();
   // ws[2] = append_window();
@@ -52,7 +53,6 @@ void kmain() {
   // init_printer();
   // color_printf(yellow0, "\nprinter init...\n\n");
 
-  setup_paging();
   load_idt();
   init_pic();
   // color_printf(red0, "set IF...\n");
