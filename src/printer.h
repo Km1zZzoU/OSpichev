@@ -12,7 +12,8 @@
 u16 font[256][24];
 #define w 1600
 #define h 1200
-volatile int curx = 0, cury = 0;
+int curx = 0;
+int cury = 0;
 #define size_w (w / size_x - 1)
 #define size_h (h / size_y - 1)
 

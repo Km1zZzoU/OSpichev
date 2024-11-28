@@ -8,24 +8,24 @@
 #include "typedef.h"
 
 
-#define X_OUTSIDE_INDENT (size_x >> 2)
-#define Y_OUTSIDE_INDENT (10)
+#define BASE_OUTSIDE_INDENT (size_x >> 2)
+#define BAR_WINDOW_INDENT (14)
 #define BORDER_SIZE (size_x >> 2)
-#define INSIDE_INDENT (size_x >> 4)
-#define BORDER_INDENT (BORDER_SIZE + INSIDE_INDENT)
-#define Y_OUTSIDE_BETWEEN (size_y - 2 * BORDER_INDENT)
-#define BETWEEN_INDENT_X (2 * BORDER_INDENT + X_OUTSIDE_INDENT)
-#define BETWEEN_INDENT_Y (2 * BORDER_INDENT + Y_OUTSIDE_INDENT)
-#define X_INDENT (X_OUTSIDE_INDENT + BORDER_INDENT)
-#define Y_INDENT_BAR (Y_OUTSIDE_INDENT + BORDER_INDENT)
-#define Y_INDENT_WIN (Y_INDENT_BAR + size_y + BETWEEN_INDENT_Y)
+#define X_INSIDE_INDENT (size_x >> 4)
+#define INSIDE_INDENT_BAR X_INSIDE_INDENT
+#define X_BORDER_INDENT (BORDER_SIZE + X_INSIDE_INDENT)
+#define Y_INSIDE_INDENT_WIN                                                    \
+  (((size_y - BASE_OUTSIDE_INDENT - 2 * BORDER_SIZE) >> 1) - 1)
+#define Y_BORDER_INDENT_WIN (BORDER_SIZE + Y_INSIDE_INDENT_WIN)
+#define BORDER_INDENT_BAR (BORDER_SIZE + INSIDE_INDENT_BAR)
+#define BAR_FULL_SIZE (2 * BORDER_INDENT_BAR + size_y)
 #define Y_OUTSIDE_INDENT_WIN                                                   \
-  (Y_INDENT_BAR + size_y + BORDER_INDENT + Y_OUTSIDE_INDENT)
+  (BASE_OUTSIDE_INDENT + BAR_FULL_SIZE + BAR_WINDOW_INDENT)
 
 #define size_w_window 99
 #define size_h_window 47
 
-#define START_SIZE_BUFFER_WINDOW _4MB * 4
+#define START_SIZE_BUFFER_WINDOW _4MB
 
 #define border_active_color orange1
 #define border_inactive_color bg3
@@ -58,12 +58,16 @@ void update_window(Window* window, const int refocus, const int fill);
 // 2->1+1
 // 3->1+2
 // 4->1+3
-// 5->2+3
+// 5->1+4
 // 6->2+4
 // 7->1+2+2+2
-//
-//
-//
+// 8->1+2+2+3
+// 9->1+2+3+3
+// 10->1+3+3+3
+// 11->1+3+3+4
+// 12->1+3+4+4
+// 13->1+4+4+4
+// 14->2+4+4+4
 Window* focus_window = NULL;
 
 static int active(const Window* window) {
@@ -78,18 +82,24 @@ static void active_window(Window* window) {
   }
 }
 
-static byte split2(const byte x) {
-  return (x - 1) / 2;
+static byte splitn(const byte x, const byte n) {
+  return (x - n + 1) / n;
 }
 
-static byte split3(const byte x) {
-  return (x - 2) / 3;
+static u32 getx0(const byte x) {
+  return BASE_OUTSIDE_INDENT + x * size_x;
 }
+
+static u32 gety0(const byte y) {
+  return Y_OUTSIDE_INDENT_WIN + y * size_y;
+}
+
 
 void clear_workspace() {
-  for (u32 y = 0; y < size_h_window * size_y + 2 * BORDER_INDENT; y++) {
-    for (u32 x = 0; x < size_w_window * size_x + 2 * BORDER_INDENT; x++)
-      getptr(0, 0, X_OUTSIDE_INDENT + x + w * (Y_OUTSIDE_INDENT_WIN + y)) = 0;
+  for (u32 y = 0; y < size_h_window * size_y + 2 * Y_BORDER_INDENT_WIN; y++) {
+    for (u32 x = 0; x < size_w_window * size_x + 2 * X_BORDER_INDENT; x++)
+      getptr(0, 0, x + BASE_OUTSIDE_INDENT + w * (y + Y_OUTSIDE_INDENT_WIN)) =
+          0;
   }
 }
 
@@ -99,60 +109,129 @@ void resize(WorkSpace* wSpace) {
     update_window(win, 1, 1);
 }
 
+static Window* last(Window* window) {
+  return window->next ? last(window->next) : window;
+}
+
 Window* append_window() {
   WorkSpace* work_space = _wManager.workspaces[_wManager.current_workspace];
   if (!work_space)
     kpanic("WindowManager: %d work space is null", _wManager.current_workspace);
-  const byte count  = ++work_space->window_count;
-  Window*    window = make(sizeof(Window));
-  window->symbols   = (symbol*)make(START_SIZE_BUFFER_WINDOW);
+  const byte count = ++work_space->window_count;
+  const byte lim   = 14;
+  if (count > lim)
+    kpanic("WindowManager: %d out of lim windows", count);
+  Window* window  = make(sizeof(Window));
+  window->symbols = (symbol*)make(START_SIZE_BUFFER_WINDOW);
 
   window->index_for_show = 0;
   window->size_buff      = 0;
 
-  window->next = NULL;
-  Window* main = work_space->window;
+  window->next     = NULL;
+  Window* main     = work_space->window;
+  last(main)->next = window;
 
-  if (count == 2) {
-    main->width = split2(main->width);
+  Window* ws[lim];
+  ws[0] = main;
+  for (byte i = 1; i < lim; i++) {
+    ws[i] = ws[i - 1] ? ws[i - 1]->next : NULL;
+  }
+  byte count_stacks = count < 7 ? 1 : 3;
+  // color_printf(red1, "%d", count_stacks);
+  byte count_in_main   = ((count & 7) == 6) + 1;
+  byte count_in_stacks = count - count_in_main;
+
+  // weight
+  for (byte i = 0; ws[i]; i++) {
+    ws[i]->width = splitn(size_w_window, count_stacks + 1);
   }
 
-  switch (count) {
-    case 2:
-      main->next = window;
+  byte nearest_mul_of_the_number_of_columns = count_stacks;
+  for (; nearest_mul_of_the_number_of_columns < count - count_in_main;
+       nearest_mul_of_the_number_of_columns += count_stacks)
+    ;
+  byte max_count_in_stack = nearest_mul_of_the_number_of_columns / count_stacks;
+  // color_printf(orange0, "max_count_in_stack %d\n", max_count_in_stack);
+  byte need_to_add = nearest_mul_of_the_number_of_columns - count_in_stacks;
 
-      window->y0 = main->y0;
-      window->x0 = (w + X_OUTSIDE_INDENT) / 2;
-
-      window->height = main->height;
-      window->width  = main->width;
-      break;
-    case 3:
-      main->next->next = window;
-
-      Window* w2 = main->next;
-      Window* w3 = w2->next;
-
-      w2->height = split2(main->height);
-
-      w3->x0 = w2->x0;
-      w3->y0 = w2->y0 + w2->height * size_y + size_y;
-
-      w3->height = w2->height;
-      w3->width  = w2->width;
-      break;
-    case 4:
-      main->next->next->next = window;
-
-      main->next->height       = split3(main->height);
-      main->next->next->height = split3(main->height);
-      break;
-    default:
-      break;
+  // x0 mains
+  for (byte i = 0; i < count_in_main; i++) {
+    ws[i]->x0 = getx0(0);
   }
+  // mini main
+  if (count_in_main == 2) {
+    ws[1]->height = splitn(size_h_window, max_count_in_stack);
+    ws[1]->y0     = gety0(size_h_window - ws[1]->height);
+    // main height
+    main->height = size_h_window - ws[1]->height - 1;
+  } else {
+    main->height = size_h_window;
+  }
+
+  // stack
+  // 7->1+2+2+2
+  // 8->1+2+2+3
+  //   9->1+2+3+3
+  // 10->1+3+3+3
+  byte k = count_in_main;
+  for (byte i = 0; i < count_stacks; i++) {
+    const byte count_in_cur = max_count_in_stack - (i < need_to_add);
+    for (byte j = 0; j < count_in_cur; j++) {
+      ws[k]->x0 =
+          getx0((splitn(size_w_window, count_stacks + 1) + 1) * (i + 1));
+      // color_printf(red0, "%d\n", ws[k]->x0);
+      ws[k]->height = splitn(size_h_window, count_in_cur);
+
+
+      ws[k]->y0 = gety0((ws[k]->height + 1) * j);
+      // color_printf(red0, "k:%h\n", k);
+      k++;
+    }
+  }
+  //
+  // if (count == 2) {
+  //   main->width = split2(main->width);
+  // }
+  //
+  // switch (count) {
+  //   case 2:
+  //     main->next = window;
+  //
+  //     window->y0 = main->y0;
+  //     window->x0 = (w + BASE_OUTSIDE_INDENT) / 2;
+  //
+  //     window->height = main->height;
+  //     window->width  = main->width;
+  //     break;
+  //   case 3:
+  //     main->next->next = window;
+  //
+  //     Window* w2 = main->next;
+  //     Window* w3 = w2->next;
+  //
+  //     w2->height = split2(main->height);
+  //
+  //     w3->x0 = w2->x0;
+  //     w3->y0 = w2->y0 + w2->height * size_y + size_y;
+  //
+  //     w3->height = w2->height;
+  //     w3->width  = w2->width;
+  //     break;
+  //   case 4:
+  //     main->next->next->next = window;
+  //
+  //     main->next->height       = split3(main->height);
+  //     main->next->next->height = split3(main->height);
+  //     break;
+  //   default:
+  //     break;
+  //}
+
 
   resize(work_space);
-
+  // __cli();
+  // color_printf(blue1, "%d %d %d %d\n", ws[1]->x0, ws[1]->y0, ws[1]->width,
+  //              ws[1]->height);
   return window;
 }
 
@@ -166,7 +245,7 @@ static void init_window(WorkSpace* wSpace) {
   wSpace->window->size_buff      = 0;
   wSpace->window->index_for_show = 0;
 
-  wSpace->window->x0 = X_OUTSIDE_INDENT;
+  wSpace->window->x0 = BASE_OUTSIDE_INDENT;
   wSpace->window->y0 = Y_OUTSIDE_INDENT_WIN;
 
   wSpace->window->width  = size_w_window;
@@ -199,8 +278,8 @@ Window* init_window_manager(const u32 space_count) {
 }
 
 static void refocus_window(const Window* window) {
-  const u32 width  = size_x * window->width + 2 * BORDER_INDENT;
-  const u32 height = size_y * window->height + 2 * BORDER_INDENT;
+  const u32 width  = size_x * window->width + 2 * X_BORDER_INDENT;
+  const u32 height = size_y * window->height + 2 * Y_BORDER_INDENT_WIN;
 
   const colorType color =
       active(window) ? border_active_color : border_inactive_color;
@@ -222,8 +301,8 @@ static void refocus_window(const Window* window) {
 }
 
 static void fill_window(const Window* window) {
-  for (u32 y = 0; y < window->height * size_y + 2 * INSIDE_INDENT; y++) {
-    for (u32 x = 0; x < window->width * size_x + 2 * INSIDE_INDENT; x++)
+  for (u32 y = 0; y < window->height * size_y + 2 * Y_INSIDE_INDENT_WIN; y++) {
+    for (u32 x = 0; x < window->width * size_x + 2 * X_INSIDE_INDENT; x++)
       getptr(0, 0,
              window->x0 + BORDER_SIZE + x +
                  w * (window->y0 + BORDER_SIZE + y)) = bg_window_color;
@@ -237,8 +316,9 @@ static void write_in_window(const u32 x0, const u32 y0, const byte x,
       const u16 mask = 0b1000000000000000 >> j;
 
       if ((font[c.character][i] & mask) > 0) {
-        getptr(x, y, (x0 + j + BORDER_INDENT + w * (y0 + i + BORDER_INDENT))) =
-            c.color;
+        getptr(x, y,
+               (x0 + j + X_BORDER_INDENT +
+                w * (y0 + i + Y_BORDER_INDENT_WIN))) = c.color;
       }
     }
   }
@@ -290,7 +370,7 @@ u32 ko_out(Window* window, const symbol* kostr) {
     kpanic("WindowManager: ko_out in NULL window", -1);
 
   if (window->size_buff + kolen(kostr) >
-      START_SIZE_BUFFER_WINDOW / (2 * sizeof(symbol)))
+      START_SIZE_BUFFER_WINDOW / (sizeof(symbol)))
     kpanic("WindowManager: ko_out in too many symbols", -1);
   active_window(window);
   window->size_buff += kostr_copy(window->symbols + window->size_buff, kostr);

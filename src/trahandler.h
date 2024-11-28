@@ -4,7 +4,7 @@
 #include "syscalls.h"
 #include "taskmanager.h"
 
-#define SPEED_SWITCH 0
+#define SPEED_SWITCH 2
 
 void __handler(cntxt* cntxt) {
   int IF = cntxt->e_flags & (1 << 9);
@@ -18,15 +18,13 @@ void __handler(cntxt* cntxt) {
       }
       break;
     case 0x21:
-      kb_trap();
+      kb_trap(_wManager.workspaces[_wManager.current_workspace]->window);
       break;
     case 0x42:
       syscall_print((Window*)cntxt->ebx, (char*)cntxt->eax);
       break;
     default:
-      // init_printer();
       __cli();
-      __loop();
       color_printf(red1,
                    "\nKernel panic: unhadled interrupt %h. Context:\n"
                    "ESP = %h\n"
@@ -39,6 +37,7 @@ void __handler(cntxt* cntxt) {
                    cntxt->edx, cntxt->ebx, cntxt->ebp, cntxt->esi, cntxt->edi,
                    cntxt->ds, cntxt->es, cntxt->fs, cntxt->gs, cntxt->eip,
                    cntxt->e_code);
+      __loop();
       break;
   }
   cntxt->e_flags |= IF;
