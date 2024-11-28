@@ -1,19 +1,20 @@
+%include "src/context.asm"
+
 section .text
-extern __trap_handler
-extern __debug_print_esp
+
 %macro TRAP_WITH_ERROR_CODE 1
 [GLOBAL __trap_%1]
 __trap_%1:
     push 0b%1
-    jmp collect_context
+    jmp context_handler
 %endmacro
 
 %macro TRAP_WITHOUT_ERROR_CODE 1
 [GLOBAL __trap_%1]
 __trap_%1:
-    push 0x42
+    push 228
     push 0b%1
-    jmp collect_context
+    jmp context_handler
 %endmacro
 
 TRAP_WITHOUT_ERROR_CODE 000000
@@ -52,28 +53,3 @@ TRAP_WITHOUT_ERROR_CODE 100000
 TRAP_WITHOUT_ERROR_CODE 100001
 
 TRAP_WITHOUT_ERROR_CODE 1000010 ; -> 0x42;
-
-collect_context:
-    push ds
-    push es
-    push fs
-    push gs
-    pusha
-
-    mov eax, 0x10
-    mov ds, ax
-    mov es, ax
-
-    push esp
-    call __trap_handler
-    pop esp
-
-    popa
-    pop gs
-    pop fs
-    pop es
-    pop ds
-    add esp, 8
-;    jmp __debug_print_esp
-    IRETD
-

@@ -1,7 +1,7 @@
 %include "src/traps.asm"
 %include "src/testdefaulthandler.asm"
-%include "src/test.asm"
 
+extern gdb_forks
 section .text
 
 [GLOBAL __loop]
@@ -61,27 +61,9 @@ __eoi:
     out dx, al
     ret
 
-[GLOBAL foo]
-hello:
-    dq "Hello, world!"
-foo:
-    mov eax, hello
-    int 0x42
-    ret
-
-[GLOBAL bar]
-name:
-    dq "My name is Ospichev!"
-bar:
-    mov eax, name
-    int 0x42
-    ret
-
-
-[GLOBAL biz]
-bz:
-    dq "bzzzz "
-biz:
-    mov eax, bz
+[GLOBAL __puts]
+__puts:
+    mov eax, [esp + 8]
+    mov ebx, [esp + 4]
     int 0x42
     ret
