@@ -4,6 +4,7 @@
 #include "printer.h"
 #include "symbol.h"
 #include "typedef.h"
+#include "windowmanager.h"
 
 byte scancode[] = {
     // 0x00 - 0x1F (Контрольные символы)
@@ -21,8 +22,15 @@ byte shift_scancode[] = {
     'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?', 0,   '*', 0,   ' ', // 0x39
 };
 
-void kb_trap() {
-  click_handler();
+static char* get_str_for_out(byte* scancode, const byte c) {
+  char* str = make(2 * sizeof(byte));
+  str[0]    = scancode[c];
+  str[1]    = 0;
+  return str;
+}
+
+void kb_trap(Window* window) {
+  click_handler(window);
 }
 
 byte shift_togle = 0;
@@ -36,19 +44,15 @@ void click_handler(Window* window) {
   if (symbol < 0x40) {
     switch (symbol) {
       case 0x1C:
-        __puts(window, "\n");
+        c_out(window, "\n");
         break;
 
       case 0x0E:
         window->symbols[--window->size_buff].character = 0;
+        update_window(window, 0, 1);
         break;
 
-      case 0xF:
-        break;
-        if (curx == size_w - 2)
-          vga_putc(fg, ' ');
-        vga_putc(fg, ' ');
-        vga_putc(fg, ' ');
+      case 0xF: // tab
         break;
 
       case 0x38: // alt
@@ -60,9 +64,9 @@ void click_handler(Window* window) {
         break;
       default:
         if (shift_togle) {
-          __puts(window, shift_scancode + symbol);
+          c_out(window, get_str_for_out(shift_scancode, symbol));
         } else {
-          __puts(window, scancode + symbol);
+          c_out(window, get_str_for_out(scancode, symbol));
         }
         break;
     }

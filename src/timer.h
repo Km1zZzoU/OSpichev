@@ -24,9 +24,7 @@ void update_time() {
   for (int i = curx; i < 99; i++)
     vga_draw(font[0xdb], i, 0, bg0);
 
-  for (u32 i = 0; ws[i]; i++)
-    color_printf(orange0, " w%h:%h ", i, ws[i]->size_buff);
-  color_printf(orange0, "%h ", count_sw);
+  color_printf(orange0, "swithc: %h ", count_sw);
   vga_putn(purple0, START, 16);
   vga_puts(red1, " time:");
   vga_putn(red0, system_hour, 10);
@@ -36,6 +34,8 @@ void update_time() {
   vga_putn(red0, system_sec, 10);
   vga_putc(red1, '|');
   vga_putn(yellow1, system_tick, 10);
+  curx = 75;
+  color_printf(blue1, "Welcome to the OSpichev!");
   curx = oldx;
   cury = oldy;
 }
