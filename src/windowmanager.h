@@ -292,13 +292,11 @@ u32 ko_out(Window* window, const symbol* kostr) {
   if (window->size_buff + kolen(kostr) >
       START_SIZE_BUFFER_WINDOW / (2 * sizeof(symbol)))
     kpanic("WindowManager: ko_out in too many symbols", -1);
-
   active_window(window);
   window->size_buff += kostr_copy(window->symbols + window->size_buff, kostr);
 
   update_window(window, 1, 0);
   // free(kostr);
-
 
   return window->size_buff;
 }

@@ -3,6 +3,7 @@
 #include "kernel.h"
 
 void update_time() {
+
   if (system_tick++ == 91) {
     system_tick = 1;
     system_sec += 5;

@@ -28,19 +28,19 @@ int fib(int n) {
 
 void qwe() {
   for (;;) {
-    __puts(ws[1], "q");
+    __puts(ws[0], "e");
   }
 }
 
 void asd() {
   for (;;) {
-    __puts(ws[0], "w");
+    __puts(ws[1], "o");
   }
 }
 
 void zxc() {
   for (;;) {
-    __puts(ws[2], "ose 2024 ");
+    __puts(ws[2], "s");
   }
 }
 
@@ -48,7 +48,7 @@ void kmain() {
   setup_paging();
   ws[0] = init_window_manager(2);
   ws[1] = append_window();
-  // ws[2] = append_window();
+  ws[2] = append_window();
 
   // init_printer();
   // color_printf(yellow0, "\nprinter init...\n\n");
@@ -61,7 +61,7 @@ void kmain() {
 
   append_task(task, qwe);
   append_task(task, asd);
-  // append_task(task, zxc);
+  append_task(task, zxc);
   go(task);
   __loop();
 }
