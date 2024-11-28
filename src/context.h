@@ -1,7 +1,7 @@
 #pragma once
 #include "make.h"
 #include "typedef.h"
-#define STACK_SIZE _4MB / 4
+#define STACK_SIZE _4MB
 
 cntxt* init_context(void (*func)()) {
   u32    stack       = (u32)make(STACK_SIZE);

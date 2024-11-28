@@ -63,14 +63,8 @@ int cury = 0;
 void init_printer() {
   vga_clear();
   for (int x = 4; x < w - 4; x++) {
-    for (int y = 4; y < h - 4; ++y) {
-      // int r = (w/2-x | h/2-y) & 0xff;
-      // int g = (w/2-x | h/2-y) & 0xff;
-      // int b = (w/2-x | h/2-y) & 0xff;
-      // getptr(0, 0, y * w + x) = r <<
-      // 16 | g << 8 | b;
+    for (int y = 4; y < h - 4; ++y)
       getptr(0, 0, y * w + x) = bg0;
-    }
   }
   curx = 0;
   cury = 0;
@@ -83,8 +77,7 @@ void printf(char* msg) {
 
 void color_printf(colorType color, char* fmt, ...) {
   char* p   = fmt;
-  int*  arg = (int*)&fmt + 1; // Указатель на
-                              // следующий аргумент
+  int*  arg = (int*)&fmt + 1;
 
   for (; *p; p++) {
     switch (*p) {
@@ -161,8 +154,8 @@ void vga_printc(colorType color, char c, int* x, int* y) {
 }
 
 void vga_prints(colorType color, char* str, int* x, int* y) {
-  for (; *str != '\0';)
-    vga_printc(color, *str++, x, y);
+  for (; *str != '\0'; vga_printc(color, *str++, x, y))
+    ;
 }
 
 void vga_putc(colorType color, char c) {
@@ -194,9 +187,8 @@ void vga_putn(colorType color, int x, int base) {
 }
 
 void vga_clear() {
-  for (int i = 0; i < w * h; i++) {
+  for (int i = 0; i < w * h; i++)
     getptr(0, 0, i) = bg0;
-  }
   for (int i = 0; i < w; i++) {
     for (int j = 0; j < h; j++) {
       if (i < 4 || i >= w - 4 || j < 4 || j >= h - 4)

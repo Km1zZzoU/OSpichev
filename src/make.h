@@ -1,8 +1,6 @@
 #pragma once
 #include "typedef.h"
 
-// void* START = 0xc0000000;
-// #define END 0xf0000000
 void* START = 0x00800000;
 #define END 0xc0000000
 

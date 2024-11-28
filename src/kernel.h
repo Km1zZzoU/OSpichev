@@ -31,5 +31,5 @@ volatile byte system_sec  = 0;
 volatile byte system_min  = 0;
 volatile byte system_hour = 0;
 
-Window* ws[0x50];
+Window* ws[14];
 u32     count_sw = 0;

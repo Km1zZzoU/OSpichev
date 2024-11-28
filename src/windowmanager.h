@@ -169,69 +169,19 @@ Window* append_window() {
   }
 
   // stack
-  // 7->1+2+2+2
-  // 8->1+2+2+3
-  //   9->1+2+3+3
-  // 10->1+3+3+3
   byte k = count_in_main;
   for (byte i = 0; i < count_stacks; i++) {
     const byte count_in_cur = max_count_in_stack - (i < need_to_add);
     for (byte j = 0; j < count_in_cur; j++) {
       ws[k]->x0 =
           getx0((splitn(size_w_window, count_stacks + 1) + 1) * (i + 1));
-      // color_printf(red0, "%d\n", ws[k]->x0);
       ws[k]->height = splitn(size_h_window, count_in_cur);
 
-
       ws[k]->y0 = gety0((ws[k]->height + 1) * j);
-      // color_printf(red0, "k:%h\n", k);
       k++;
     }
   }
-  //
-  // if (count == 2) {
-  //   main->width = split2(main->width);
-  // }
-  //
-  // switch (count) {
-  //   case 2:
-  //     main->next = window;
-  //
-  //     window->y0 = main->y0;
-  //     window->x0 = (w + BASE_OUTSIDE_INDENT) / 2;
-  //
-  //     window->height = main->height;
-  //     window->width  = main->width;
-  //     break;
-  //   case 3:
-  //     main->next->next = window;
-  //
-  //     Window* w2 = main->next;
-  //     Window* w3 = w2->next;
-  //
-  //     w2->height = split2(main->height);
-  //
-  //     w3->x0 = w2->x0;
-  //     w3->y0 = w2->y0 + w2->height * size_y + size_y;
-  //
-  //     w3->height = w2->height;
-  //     w3->width  = w2->width;
-  //     break;
-  //   case 4:
-  //     main->next->next->next = window;
-  //
-  //     main->next->height       = split3(main->height);
-  //     main->next->next->height = split3(main->height);
-  //     break;
-  //   default:
-  //     break;
-  //}
-
-
   resize(work_space);
-  // __cli();
-  // color_printf(blue1, "%d %d %d %d\n", ws[1]->x0, ws[1]->y0, ws[1]->width,
-  //              ws[1]->height);
   return window;
 }
 
