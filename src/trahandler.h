@@ -4,18 +4,16 @@
 #include "syscalls.h"
 #include "taskmanager.h"
 
-#define SPEED_SWITCH 2
+#define SPEED_SWITCH 4
 
 void __handler(cntxt* cntxt) {
-  int IF = cntxt->e_flags & (1 << 9);
   switch (cntxt->vector) {
     case 0x20:
       if (current_task && !(system_tick & ((1 << SPEED_SWITCH) - 1)))
         switch_task(&cntxt);
       update_time();
-      if (!cntxt->vector) {
+      if (!cntxt->vector)
         __eoi();
-      }
       break;
     case 0x21:
       kb_trap(_wManager.workspaces[_wManager.current_workspace]->window);
@@ -24,7 +22,6 @@ void __handler(cntxt* cntxt) {
       syscall_print((Window*)cntxt->ebx, (char*)cntxt->eax);
       break;
     default:
-      __cli();
       color_printf(red1,
                    "\nKernel panic: unhadled interrupt %h. Context:\n"
                    "ESP = %h\n"
@@ -40,7 +37,6 @@ void __handler(cntxt* cntxt) {
       __loop();
       break;
   }
-  cntxt->e_flags |= IF;
   if (cntxt->vector >= 0x20 && cntxt->vector <= 0x30) {
     __eoi();
   }

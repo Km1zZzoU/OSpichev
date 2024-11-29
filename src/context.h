@@ -22,7 +22,7 @@ cntxt* init_context(void (*func)()) {
   context->cs        = 0x8;
   context->ss        = 0x0;
   context->e_code    = 0x0;
-  context->e_flags   = 0x0;
+  context->e_flags   = 1 << 9;
   context->vector    = 0;
   context->p1        = 0;
   context->p2        = 0;

@@ -2,10 +2,12 @@
 
 #include "externs.h"
 #include "kernel.h"
+#include "windowmanager.h"
 
 void qwe() {
   for (;;) {
-    __puts(ws[7], "HELLO, WORLD!!! ");
+    col_c_out(ws[7], "HELLO, WORLD!!!", bright_red);
+    // __puts(ws[7], "HELLO, WORLD!!! ");
   }
 }
 
